@@ -7,7 +7,7 @@ public enum GamePhase
 {
     // 顯示故事前言。
     Intro,
-    // 執行即時伏擊。
+    // 執行即時狩獵。
     Playing,
     // 顯示章節過場。
     ChapterComplete,
@@ -144,7 +144,7 @@ public sealed class IntroConfig
     // 引言署名。
     public string QuoteBy { get; set; } = string.Empty;
     // 開始按鈕文字。
-    public string StartButton { get; set; } = "進入伏擊位置";
+    public string StartButton { get; set; } = "進入狩獵位置";
 }
 
 /// <summary>

@@ -119,7 +119,7 @@ else if (_config is not null)
                             <small>@CurrentChapter.Kicker</small>
                             <h1>@CurrentChapter.Title</h1>
                         </div>
-                        <a href="./" @onclick="AbandonGame" @onclick:preventDefault="true">退出伏擊</a>
+                        <a href="./" @onclick="AbandonGame" @onclick:preventDefault="true">退出狩獵</a>
                     </div>
 
                     @if (_phase == GamePhase.Playing)
@@ -167,7 +167,7 @@ else if (_config is not null)
 
                                 @* CSS Grid 欄數與洞穴數由 config.yaml 的 layout 控制。 *@
                                 <div class="hunting-ground" style="grid-template-columns: repeat(@_config.Layout.HoleColumns, 1fr)"
-                                     aria-label="泥沼伏擊區">
+                                     aria-label="泥沼狩獵區">
                                     <div class="mist-layer"></div>
                                     @for (var hole_index = 0; hole_index < _config.Layout.HoleCount; hole_index++)
                                     {
@@ -217,7 +217,7 @@ else if (_config is not null)
                                     <div><small>最大連擊</small><strong>@_max_combo</strong></div>
                                 </div>
                                 <button class="primary-action" @onclick="ContinueToNextChapter">
-                                    <span>前往下一處伏擊點</span><b aria-hidden="true">→</b>
+                                    <span>前往下一處狩獵點</span><b aria-hidden="true">→</b>
                                 </button>
                             </section>
                         }
@@ -257,7 +257,7 @@ else if (_config is not null)
                                     </dl>
                                     <button class="primary-action full" @onclick="ContinueExpedition"><span>下一局，累積積分</span><b>↻</b></button>
                                     <button class="secondary-action" @onclick="SaveLocallyAndExit" disabled="@_is_saved">@(_is_saved ?
-                                                                                             "已記錄於此裝置" : "記錄分數並離場")</button>
+                                                                                                                                     "已記錄於此裝置" : "記錄分數並離場")</button>
                                         @if (!string.IsNullOrWhiteSpace(_save_message))
                                         {
                                             <p class="save-message success" role="status">@_save_message</p>
@@ -324,7 +324,7 @@ else if (_config is not null)
     // 儲存斯柏格即時觀察文字。
     private string _sperger_status = "泥層正在移動。先辨認，再攝取。";
     // 儲存最近一次操作訊息。
-    private string _last_action = "伏擊位置穩定，等待第一個目標。";
+    private string _last_action = "狩獵位置穩定，等待第一個目標。";
     // 儲存本機紀錄結果訊息。
     private string _save_message = string.Empty;
     // 避免同一結算重複寫入本機儲存空間。
@@ -417,7 +417,7 @@ Math.Max(0, Config.Layout.StartingHealth - _health)));
         _frenzy_until = DateTime.MinValue;
         _bullet_time_until = DateTime.MinValue;
         _last_spawned_at = DateTime.MinValue;
-        _last_action = "伏擊位置穩定，等待泥層下的輪廓。";
+        _last_action = "狩獵位置穩定，等待泥層下的輪廓。";
         _sperger_status = CurrentChapter.Quote;
         // 建立本章取消來源。
         _game_cancellation = new CancellationTokenSource();
@@ -622,7 +622,7 @@ Math.Max(0, Config.Layout.StartingHealth - _health)));
         if (_chapter_number < Config.Chapters.Count && _health > 0)
         {
             _phase = GamePhase.ChapterComplete;
-            _last_action = "章節伏擊完成。";
+            _last_action = "章節狩獵完成。";
         }
         else
         {
@@ -717,7 +717,7 @@ Math.Max(0, Config.Layout.StartingHealth - _health)));
             ?? new EvaluationConfig
             {
                 Rank = "B",
-                LogTitle = "雨後伏擊觀察紀錄",
+                LogTitle = "雨後狩獵觀察紀錄",
                 SummaryTemplate = "捕獲 {bugsCaught} 隻異變蟲。",
                 Quote =
 "保持觀察，下一輪會更精準。"

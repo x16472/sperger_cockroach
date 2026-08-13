@@ -1,6 +1,6 @@
 # sperger_cockroach
 
-《蟲鳴谷：泥沼暴食伏擊》是以 .NET 10 獨立式 Blazor WebAssembly 製作的互動式文字冒險與打地鼠遊戲。
+《蟲鳴谷：泥沼暴食狩獵》是以 .NET 10 獨立式 Blazor WebAssembly 製作的互動式文字冒險與打地鼠遊戲。
 
 ## 內容設定
 
