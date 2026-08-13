@@ -121,7 +121,7 @@ public sealed class SiteConfig
     // 品牌名稱。
     public string Brand { get; set; } = "蟲鳴谷";
     // 品牌副標。
-    public string Subtitle { get; set; } = "異世界生態伏擊紀錄";
+    public string Subtitle { get; set; } = "異世界狩獵紀錄";
     // 頁尾觀測站名稱。
     public string FooterLabel { get; set; } = "孕蟲河生態獵場";
 }
