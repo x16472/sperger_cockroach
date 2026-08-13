@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <!-- 設定 .NET 10 獨立式 Blazor WebAssembly 專案。 -->
+  <PropertyGroup>
+    <!-- 指定 .NET 10 目標框架。 -->
+    <TargetFramework>net10.0</TargetFramework>
+    <!-- 啟用可為 Null 參考型別分析。 -->
+    <Nullable>enable</Nullable>
+    <!-- 啟用 SDK 隱含 using 宣告。 -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- YAML 解析器使用反射，停用裁剪以避免發布後遺失設定屬性。 -->
+    <PublishTrimmed>false</PublishTrimmed>
+  </PropertyGroup>
+
+  <!-- 引用 WebAssembly 執行階段與 YAML 解析器。 -->
+  <ItemGroup>
+    <!-- 提供瀏覽器內執行的 Blazor WebAssembly 元件。 -->
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.0" />
+    <!-- 提供開發期間的 WebAssembly 靜態檔案伺服器。 -->
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.0" PrivateAssets="all" />
+    <!-- 解析納入版控的 config.yaml 遊戲設定。 -->
+    <PackageReference Include="YamlDotNet" Version="18.1.0" />
+  </ItemGroup>
+
+</Project>

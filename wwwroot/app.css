@@ -1,0 +1,107 @@
+/* 建立蟲鳴谷的深綠、骨白與警示橘色設計代幣。 */
+:root {
+    --ink: #10231a;
+    --forest: #173e2a;
+    --moss: #52724a;
+    --lime: #cfec65;
+    --paper: #f4f0e4;
+    --sand: #ded6bf;
+    --orange: #ef7b45;
+    --red: #c74532;
+    color-scheme: light;
+    font-family: Inter, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+}
+
+/* 統一盒模型以維持響應式尺寸。 */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* 設定平滑錨點移動。 */
+html {
+    scroll-behavior: smooth;
+}
+
+/* 移除預設留白並套用主要背景。 */
+body {
+    background: var(--paper);
+    color: var(--ink);
+    margin: 0;
+    min-width: 320px;
+}
+
+/* 表單元件繼承品牌字體。 */
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+/* 連結預設採用目前文字色。 */
+a {
+    color: inherit;
+}
+
+/* 鍵盤操作顯示高對比焦點。 */
+:focus-visible {
+    outline: 3px solid var(--orange);
+    outline-offset: 3px;
+}
+
+/* 路由切換後的標題不顯示多餘外框。 */
+h1:focus {
+    outline: none;
+}
+
+/* 初次下載 WebAssembly 時顯示中央載入文字。 */
+.boot-state {
+    align-items: center;
+    display: flex;
+    font-family: Georgia, "Noto Serif TC", serif;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+/* 未處理錯誤列預設隱藏並固定於頁面底部。 */
+#blazor-error-ui {
+    background: #f3e7c5;
+    bottom: 0;
+    box-shadow: 0 -12px 40px rgba(10, 18, 13, 0.2);
+    color: var(--ink);
+    display: none;
+    left: 0;
+    padding: 0.9rem 7rem 0.9rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+/* 錯誤列操作維持清楚間距。 */
+#blazor-error-ui .reload {
+    font-weight: 800;
+    margin-left: 0.75rem;
+}
+
+/* 錯誤列關閉按鈕固定在右側。 */
+#blazor-error-ui .dismiss {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    position: absolute;
+    right: 1rem;
+    top: 0.7rem;
+}
+
+/* 尊重偏好減少動態效果的使用者設定。 */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 1ms !important;
+        scroll-behavior: auto !important;
+        transition-duration: 1ms !important;
+    }
+}

@@ -1,0 +1,120 @@
+# 網站品牌與頁尾文字。
+site:
+  title: "Sperger Cockroach｜蟲鳴谷：泥沼暴食伏擊"
+  brand: "蟲鳴谷"
+  subtitle: "異世界生態伏擊紀錄"
+  footerLabel: "孕蟲河生態獵場"
+
+# 開場故事與主要操作文字。
+intro:
+  kicker: "序章／雨後的蛋白質召喚"
+  headline: "泥沼很糟。"
+  headlineAccent: "伏擊很優雅。"
+  lead: "絕壁環繞的蟲鳴谷剛下過一場雨。孕蟲河喚醒了地底的巨型昆蟲，也把每條路都變成斯柏格最討厭的黏膩爛泥。"
+  quote: "移動會增加污泥附著面積。讓獵物自己送上門，才是兼顧熱量與尊嚴的理性解。"
+  quoteBy: "斯柏格．費里尼，變異美國蟑螂／博學的美食家"
+  startButton: "進入伏擊位置"
+
+# 畫面布局與遊戲時間參數。
+layout:
+  chapterDurationSeconds: 20
+  holeCount: 9
+  holeColumns: 3
+  startingHealth: 3
+
+# 得分、扣分及特殊模式參數。
+gameplay:
+  commonBugScore: 100
+  rareBugScore: 300
+  friendlyPenalty: 150
+  hazardPenalty: 300
+  frenzyCombo: 10
+  frenzyDurationSeconds: 6
+  frenzyMultiplier: 2
+  bulletTimeDurationSeconds: 3
+
+# 三章式故事流程。
+chapters:
+  - title: "雨後爛泥與蛋白質的召喚"
+    kicker: "MUD CAVITY / 01"
+    story: "雨後地底開始躁動。斯柏格伏在冒泡泥穴之間，以最少移動換取最高熱量。"
+    quote: "泥巴很討厭，但這些異變甲蟲的蛋白質確實優質。"
+  - title: "高莫氏硬度的考驗"
+    kicker: "PREGNANT RIVER / 02"
+    story: "伏擊線轉向孕蟲河畔。礦物化外殼與毒性孢子混入獵物群，感官判斷比速度更加重要。"
+    quote: "盲目啃咬莫氏硬度過高的東西，依然是不智之舉。"
+  - title: "暴食領主的割草盛宴"
+    kicker: "DEEP SWAMP / 03"
+    story: "孕蟲湖深處蟲潮湧現。斯柏格釋放兇惡氣場，在不傷及谷中生態的前提下完成最後伏擊。"
+    quote: "喧囂將退去。今晚的能量上限，就由這一輪決定。"
+
+# 標靶圖鑑、無障礙標籤與隨機出現權重。
+targets:
+  - kind: "CommonBug"
+    category: "基礎獵物"
+    name: "普通異變蟲"
+    scoreLabel: "+100"
+    description: "穩定蛋白質來源，適合建立連擊。"
+    glyph: "甲"
+    accessibleLabel: "普通異變蟲，加一百分"
+    weight: 48
+  - kind: "RareBug"
+    category: "高階美食"
+    name: "稀有晶岩蟲"
+    scoreLabel: "+300"
+    description: "金色螢光一閃即逝，值得優先捕獲。"
+    glyph: "晶"
+    accessibleLabel: "稀有晶岩蟲，加三百分"
+    weight: 18
+  - kind: "FriendlyCreature"
+    category: "生態友軍"
+    name: "友善小生物"
+    scoreLabel: "-150"
+    description: "請克制本能；誤傷將中斷所有連擊。"
+    glyph: "善"
+    accessibleLabel: "友善生物，請勿攻擊"
+    weight: 11
+  - kind: "Hazard"
+    category: "危險陷阱"
+    name: "毒孢子與硬石"
+    scoreLabel: "-300"
+    description: "損失一點體力，體力歸零即終止伏擊。"
+    glyph: "危"
+    accessibleLabel: "毒孢子或硬石，請勿攻擊"
+    weight: 16
+  - kind: "ActiveBubble"
+    category: "感官觸媒"
+    name: "孕蟲河活性氣泡"
+    scoreLabel: "SLOW"
+    description: "啟動三秒超感官微觀，延長辨識時間。"
+    glyph: "泡"
+    accessibleLabel: "孕蟲河活性氣泡，啟動時間減速"
+    weight: 7
+
+# 依調整後分數由高至低選擇結算評語。
+evaluations:
+  - rank: "SSS"
+    minimumScore: 4200
+    logTitle: "完美暴食！爛泥中的頂級獵手"
+    summaryTemplate: "以 {maxCombo} 次最大連擊捕獲 {bugsCaught} 隻異變蟲，累積 {score} 分，並維持精準的生態判讀。"
+    quote: "（冷靜擦拭口器）泥巴仍舊令人不快，但這份精準與熱量收益，足以證明伏擊是最優雅的移動方式。"
+  - rank: "A"
+    minimumScore: 2600
+    logTitle: "高效率的雨後蛋白質收益"
+    summaryTemplate: "捕獲 {bugsCaught} 隻異變蟲，最大連擊達 {maxCombo}，本次總分為 {score}。"
+    quote: "成果符合預期。若再減少無效出手，這片爛泥便更值得忍受。"
+  - rank: "B"
+    minimumScore: 1400
+    logTitle: "穩定的伏擊觀察紀錄"
+    summaryTemplate: "捕獲 {bugsCaught} 隻異變蟲，誤傷 {friendlyHits} 次，危險誤擊 {hazardHits} 次。"
+    quote: "收穫足以維持體力。只要把每一次等待都視為觀察，下一輪便能更接近毫無浪費的獵食。"
+  - rank: "C"
+    minimumScore: 500
+    logTitle: "口器與判斷的校正課"
+    summaryTemplate: "總分 {score}，其中誤傷 {friendlyHits} 次、危險誤擊 {hazardHits} 次，仍有改善空間。"
+    quote: "咬合力不是智慧。氣味、色澤與質地，都值得在出手前再確認一次。"
+  - rank: "D"
+    minimumScore: -999999
+    logTitle: "泥沼中的生態界線"
+    summaryTemplate: "本次捕獲 {bugsCaught} 隻異變蟲，但衝動明顯干擾了生態判讀。"
+    quote: "（緩慢整理觸鬚）下次，我會先辨認生命的輪廓，再決定是否張開口器。"

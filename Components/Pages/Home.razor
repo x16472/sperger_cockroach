@@ -1,0 +1,856 @@
+@page "/"
+@implements IAsyncDisposable
+@using System.Diagnostics
+@using sperger_cockroach.Models
+@using sperger_cockroach.Services
+@inject GameConfigService ConfigService
+@inject IJSRuntime JsRuntime
+
+<PageTitle>@(_config?.Site.Title ?? "Sperger Cockroach")</PageTitle>
+
+@* 設定載入完成前顯示簡短等待畫面。 *@
+@if (_config is null && string.IsNullOrWhiteSpace(_config_error))
+{
+    <main class="config-state">
+        <span class="brand-mark" aria-hidden="true">蟲</span>
+        <p>正在展開蟲鳴谷生態紀錄……</p>
+    </main>
+}
+else if (!string.IsNullOrWhiteSpace(_config_error))
+{
+    @* YAML 無法載入時顯示可理解的維護訊息。 *@
+    <main class="config-state error-state">
+        <span class="brand-mark" aria-hidden="true">!</span>
+        <h1>獵場設定無法讀取</h1>
+        <p>@_config_error</p>
+    </main>
+}
+else if (_config is not null)
+{
+    @* 遊戲主畫面會依目前階段切換開場、獵場、章節過場與結算。 *@
+    <main class="game-shell @(_is_frenzy ? "frenzy-active" : string.Empty)">
+        <header class="game-header">
+            <a class="brand" href="./" aria-label="返回遊戲首頁">
+                <span class="brand-mark" aria-hidden="true">蟲</span>
+                <span>
+                    <small>@_config.Site.Subtitle</small>
+                    <strong>@_config.Site.Brand</strong>
+                </span>
+            </a>
+            <nav class="header-nav" aria-label="主要導覽">
+                <a href="#field-guide">獵場情報</a>
+            </nav>
+        </header>
+
+        @if (_phase == GamePhase.Intro)
+        {
+            @* 開場文字全部由 config.yaml 提供。 *@
+            <section class="intro-stage">
+                <div class="eyebrow"><span></span> SPERGER'S FIELD LOG · 001</div>
+                <div class="intro-grid">
+                    <div class="intro-copy">
+                        <p class="chapter-kicker">@_config.Intro.Kicker</p>
+                        <h1>@_config.Intro.Headline<br /><em>@_config.Intro.HeadlineAccent</em></h1>
+                        <p class="lead">@_config.Intro.Lead</p>
+                        <blockquote>
+                            「@_config.Intro.Quote」
+                            <cite>— @_config.Intro.QuoteBy</cite>
+                        </blockquote>
+                        <button class="primary-action" @onclick="BeginAdventure">
+                            <span>@_config.Intro.StartButton</span>
+                            <b aria-hidden="true">↗</b>
+                        </button>
+                        <p class="micro-note">@_config.Chapters.Count 章節 · 每章 @_config.Layout.ChapterDurationSeconds 秒 ·
+                            支援滑鼠、觸控與鍵盤</p>
+                        </div>
+
+                        @* 主角使用純 CSS 形體呈現，避免外部圖片依賴。 *@
+                        <div class="hero-art" aria-label="斯柏格站在雨後泥沼前觀察獵物的剪影">
+                            <div class="sun-disc"></div>
+                            <div class="fern fern-left"><i></i><i></i><i></i><i></i><i></i></div>
+                            <div class="fern fern-right"><i></i><i></i><i></i><i></i><i></i></div>
+                            <div class="sperger">
+                                <div class="antenna antenna-left"></div>
+                                <div class="antenna antenna-right"></div>
+                                <div class="roach-head"><i></i><i></i></div>
+                                <div class="roach-body"><span></span><span></span><span></span></div>
+                                <div class="roach-leg leg-one"></div>
+                                <div class="roach-leg leg-two"></div>
+                                <div class="roach-leg leg-three"></div>
+                                <div class="roach-leg leg-four"></div>
+                            </div>
+                            <div class="mud-ridge"><span></span><span></span><span></span></div>
+                            <div class="specimen-label">SPECIMEN 07<br /><b>SPERGER FELLINI</b></div>
+                        </div>
+                    </div>
+                </section>
+
+                @* 圖鑑項目與分數標籤由 config.yaml 產生。 *@
+                <section class="field-guide" id="field-guide">
+                    <div class="section-heading">
+                        <span>FIELD NOTES</span>
+                        <h2>出手前，先辨認牠。</h2>
+                    </div>
+                    <div class="guide-grid">
+                        @foreach (var target_config in _config.Targets.Where(target => target.Kind !=
+                nameof(TargetKind.ActiveBubble)))
+                        {
+                            <article>
+                                <span class="target-icon @TargetCssClass(target_config.Kind)">@target_config.Glyph</span>
+                                <small>@target_config.Category</small>
+                                <h3>@target_config.Name</h3>
+                                <b>@target_config.ScoreLabel</b>
+                                <p>@target_config.Description</p>
+                            </article>
+                        }
+                    </div>
+                </section>
+            }
+        else
+            {
+                @* 遊戲區以即時儀表、動態洞穴與觀察筆記構成。 *@
+                <section class="play-stage">
+                    <div class="play-topline">
+                        <div>
+                            <span class="eyebrow compact"><span></span> EXPEDITION @_round_number</span>
+                            <p>CHAPTER @_chapter_number / @_config.Chapters.Count.ToString("00")</p>
+                        </div>
+                        <div class="chapter-title">
+                            <small>@CurrentChapter.Kicker</small>
+                            <h1>@CurrentChapter.Title</h1>
+                        </div>
+                        <a href="./" @onclick="AbandonGame" @onclick:preventDefault="true">退出伏擊</a>
+                    </div>
+
+                    @if (_phase == GamePhase.Playing)
+                    {
+                        <div class="scoreboard" aria-label="即時遊戲資訊">
+                            <div><small>總積分</small><strong>@_total_score.ToString("N0")</strong></div>
+                            <div><small>連擊</small><strong class="combo-value">× @_combo</strong></div>
+                            <div><small>體力</small><strong class="health-value">@HealthDisplay</strong></div>
+                            <div class="timer-stat"><small>剩餘時間</small><strong>00:@_seconds_left.ToString("00")</strong><span
+                                style="width: @TimerPercent%"></span></div>
+                            </div>
+
+                            <div class="combat-grid">
+                                <aside class="field-journal">
+                                    <span class="journal-index">@_chapter_number.ToString("00")</span>
+                                    <h2>斯柏格的<br />即時觀察</h2>
+                                    <p>「@_sperger_status」</p>
+                                    <dl>
+                                        <div>
+                                            <dt>捕獲</dt>
+                                            <dd>@_bugs_caught</dd>
+                                        </div>
+                                        <div>
+                                            <dt>最大連擊</dt>
+                                            <dd>@_max_combo</dd>
+                                        </div>
+                                        <div>
+                                            <dt>誤傷</dt>
+                                            <dd>@_friendly_hits</dd>
+                                        </div>
+                                    </dl>
+                                    @if (_is_frenzy)
+                                    {
+                                        <div class="mode-chip frenzy-chip">暴食狂暴 · @_config.Gameplay.FrenzyMultiplier 倍積分</div>
+                                    }
+                                    else if (_is_bullet_time)
+                                    {
+                                        <div class="mode-chip focus-chip">超感官微觀 · 時間減速</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="mode-chip">保持觀察 · 等待輪廓</div>
+                                    }
+                                </aside>
+
+                                @* CSS Grid 欄數與洞穴數由 config.yaml 的 layout 控制。 *@
+                                <div class="hunting-ground" style="grid-template-columns: repeat(@_config.Layout.HoleColumns, 1fr)"
+                                     aria-label="泥沼伏擊區">
+                                    <div class="mist-layer"></div>
+                                    @for (var hole_index = 0; hole_index < _config.Layout.HoleCount; hole_index++)
+                                    {
+                                        var current_hole = hole_index;
+                                        var target = _active_target?.HoleIndex == current_hole ? _active_target : null;
+                                        <button class="mud-hole @(target is null ? string.Empty : "occupied")" disabled="@(target is null)"
+                                                aria-label="@(target is null ? $"洞穴 {current_hole + 1}，目前沒有目標" : TargetLabel(target.Kind))"
+                                                @onclick="() => HitTarget(current_hole)">
+                                            <span class="hole-rim"></span>
+                                            @if (target is not null)
+                                            {
+                                                <span class="game-target @TargetCssClass(target.Kind.ToString())">
+                                                    <i class="target-glow"></i>
+                                                    <b>@TargetDefinition(target.Kind).Glyph</b>
+                                                    <small>@TargetDefinition(target.Kind).ScoreLabel</small>
+                                                </span>
+                                            }
+                                        </button>
+                                    }
+                                </div>
+
+                                <aside class="tactical-card">
+                                    <span>TACTICAL RULE</span>
+                                    <h2>@(_is_frenzy ? "兇惡氣場已釋放" : $"{_config.Gameplay.FrenzyCombo} 次精準，換一次暴食")</h2>
+                                    <p>@(_is_frenzy ? "目前昆蟲積分套用狂暴倍數。冷靜並不代表緩慢。" : $"連續捕獲 {_config.Gameplay.FrenzyCombo} 隻昆蟲且未誤傷，即進入短暫加倍狀態。")
+                                    </p>
+                                    <div class="combo-track"><i style="width: @ComboPercent%"></i></div>
+                                    <small>@Math.Min(_combo, _config.Gameplay.FrenzyCombo) / @_config.Gameplay.FrenzyCombo 精準捕獲</small>
+                                </aside>
+                            </div>
+
+                            <div class="status-ribbon" role="status" aria-live="polite">
+                                <span>@_last_action</span>
+                                <small>辨認色澤與輪廓後再出手</small>
+                            </div>
+                        }
+                else if (_phase == GamePhase.ChapterComplete)
+                        {
+                            @* 過場故事直接使用目前章節的 YAML 文字。 *@
+                            <section class="intermission-card">
+                                <span class="chapter-stamp">CHAPTER @_chapter_number COMPLETE</span>
+                                <p>@CurrentChapter.Story</p>
+                                <blockquote>「@CurrentChapter.Quote」</blockquote>
+                                <div class="intermission-stats">
+                                    <div><small>目前積分</small><strong>@_total_score.ToString("N0")</strong></div>
+                                    <div><small>捕獲數</small><strong>@_bugs_caught</strong></div>
+                                    <div><small>最大連擊</small><strong>@_max_combo</strong></div>
+                                </div>
+                                <button class="primary-action" @onclick="ContinueToNextChapter">
+                                    <span>前往下一處伏擊點</span><b aria-hidden="true">→</b>
+                                </button>
+                            </section>
+                        }
+                        else if (_phase == GamePhase.Result && _evaluation is not null)
+                        {
+                            @* 結算評級與評語由 config.yaml 範本產生。 *@
+                            <section class="result-layout">
+                                <article class="result-card">
+                                    <div class="rank-seal"><small>狩獵評級</small><strong>@_evaluation.Rank</strong></div>
+                                    <div class="result-copy">
+                                        <span>SPERGER'S ECOLOGICAL LOG</span>
+                                        <h1>@_evaluation.LogTitle</h1>
+                                        <p>@_evaluation.SummaryText</p>
+                                        <blockquote>「@_evaluation.SpergerQuote」</blockquote>
+                                    </div>
+                                </article>
+
+                                <aside class="result-panel">
+                                    <h2>本次遠征</h2>
+                                    <dl>
+                                        <div>
+                                            <dt>累積積分</dt>
+                                            <dd>@_total_score.ToString("N0")</dd>
+                                        </div>
+                                        <div>
+                                            <dt>最大連擊</dt>
+                                            <dd>@_max_combo</dd>
+                                        </div>
+                                        <div>
+                                            <dt>異變蟲</dt>
+                                            <dd>@_bugs_caught</dd>
+                                        </div>
+                                        <div>
+                                            <dt>危險誤擊</dt>
+                                            <dd>@_hazard_hits</dd>
+                                        </div>
+                                    </dl>
+                                    <button class="primary-action full" @onclick="ContinueExpedition"><span>下一局，累積積分</span><b>↻</b></button>
+                                    <button class="secondary-action" @onclick="SaveLocallyAndExit" disabled="@_is_saved">@(_is_saved ?
+                                                                                             "已記錄於此裝置" : "記錄分數並離場")</button>
+                                        @if (!string.IsNullOrWhiteSpace(_save_message))
+                                        {
+                                            <p class="save-message success" role="status">@_save_message</p>
+                                        }
+                                    </aside>
+                                </section>
+                            }
+                        </section>
+                    }
+
+                    <footer class="game-footer">
+                        <span>@_config.Site.FooterLabel</span>
+                        <p>設定、故事與規則來自版本控制內的 config.yaml。</p>
+                        <small>© sperger_cockroach</small>
+                    </footer>
+                </main>
+            }
+
+@code {
+    // 使用 Stopwatch 提供不受畫面更新延遲影響的章節時間。
+    private readonly Stopwatch _chapter_watch = new();
+    // 使用單一隨機來源決定洞穴與標靶。
+    private readonly Random _random = new();
+    // 儲存由 config.yaml 載入的全域設定。
+    private GameConfig? _config;
+    // 儲存設定載入失敗訊息。
+    private string _config_error = string.Empty;
+    // 取消來源用來終止換章或離場後的背景迴圈。
+    private CancellationTokenSource? _game_cancellation;
+    // 保存背景遊戲迴圈以便元件釋放時等待結束。
+    private Task? _game_loop_task;
+    // 儲存目前遊戲流程階段。
+    private GamePhase _phase = GamePhase.Intro;
+    // 儲存目前章節編號。
+    private int _chapter_number = 1;
+    // 儲存累積遠征輪數。
+    private int _round_number = 1;
+    // 儲存章節剩餘秒數。
+    private int _seconds_left;
+    // 儲存目前體力。
+    private int _health;
+    // 儲存累積分數。
+    private int _total_score;
+    // 儲存目前連擊。
+    private int _combo;
+    // 儲存最大連擊。
+    private int _max_combo;
+    // 儲存成功捕獲數。
+    private int _bugs_caught;
+    // 儲存友善生物誤傷數。
+    private int _friendly_hits;
+    // 儲存危險物誤擊數。
+    private int _hazard_hits;
+    // 儲存目前顯示標靶。
+    private GameTarget? _active_target;
+    // 儲存標靶出現時間。
+    private DateTime _target_spawned_at;
+    // 儲存上次產生標靶時間。
+    private DateTime _last_spawned_at;
+    // 儲存狂暴模式結束時間。
+    private DateTime _frenzy_until;
+    // 儲存超感官模式結束時間。
+    private DateTime _bullet_time_until;
+    // 儲存斯柏格即時觀察文字。
+    private string _sperger_status = "泥層正在移動。先辨認，再攝取。";
+    // 儲存最近一次操作訊息。
+    private string _last_action = "伏擊位置穩定，等待第一個目標。";
+    // 儲存本機紀錄結果訊息。
+    private string _save_message = string.Empty;
+    // 避免同一結算重複寫入本機儲存空間。
+    private bool _is_saved;
+    // 儲存目前結算評價。
+    private EvaluationResponse? _evaluation;
+
+    // 取得已完成載入的必要設定。
+    private GameConfig Config => _config ?? throw new InvalidOperationException("遊戲設定尚未載入。");
+    // 依時間判斷狂暴模式是否有效。
+    private bool _is_frenzy => DateTime.UtcNow < _frenzy_until;
+    // 依時間判斷超感官模式是否有效。
+    private bool _is_bullet_time => DateTime.UtcNow < _bullet_time_until;
+    // 使用實心與空心圓點顯示體力。
+    private string HealthDisplay => string.Concat(Enumerable.Repeat("●", _health)) + string.Concat(Enumerable.Repeat("○",
+Math.Max(0, Config.Layout.StartingHealth - _health)));
+    // 計算倒數進度百分比。
+    private int TimerPercent => Math.Clamp((int)Math.Round(_seconds_left / (double)Config.Layout.ChapterDurationSeconds *
+100), 0, 100);
+    // 計算狂暴連擊進度百分比。
+    private int ComboPercent => Math.Clamp((int)Math.Round(_combo / (double)Config.Gameplay.FrenzyCombo * 100), 0, 100);
+    // 取得目前章節設定。
+    private ChapterConfig CurrentChapter => Config.Chapters[_chapter_number - 1];
+
+    /// <summary>
+    /// 元件初始化時載入版本控制內的 config.yaml。
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        // 捕捉內容格式錯誤並顯示維護訊息。
+        try
+        {
+            // 非同步載入完整遊戲設定。
+            _config = await ConfigService.LoadAsync();
+            // 依設定初始化倒數秒數。
+            _seconds_left = _config.Layout.ChapterDurationSeconds;
+            // 依設定初始化體力。
+            _health = _config.Layout.StartingHealth;
+        }
+        catch (Exception exception)
+        {
+            // 不將內部呼叫堆疊顯示給玩家。
+            _config_error = exception.Message;
+        }
+    }
+
+    /// <summary>
+    /// 從序章開始全新遠征並清除上一次累積。
+    /// </summary>
+    private async Task BeginAdventure()
+    {
+        // 重設輪數。
+        _round_number = 1;
+        // 重設所有統計。
+        ResetExpeditionStatistics();
+        // 啟動第一章。
+        await StartChapterAsync(1);
+    }
+
+    /// <summary>
+    /// 清除一次完整遠征的累積統計。
+    /// </summary>
+    private void ResetExpeditionStatistics()
+    {
+        // 重設分數與行為統計。
+        _total_score = 0;
+        _max_combo = 0;
+        _bugs_caught = 0;
+        _friendly_hits = 0;
+        _hazard_hits = 0;
+        // 允許新結果再次記錄。
+        _is_saved = false;
+        _save_message = string.Empty;
+    }
+
+    /// <summary>
+    /// 初始化指定章節並啟動背景計時迴圈。
+    /// </summary>
+    private Task StartChapterAsync(int chapter_number)
+    {
+        // 終止前一章背景工作。
+        CancelGameLoop();
+        // 設定新章節狀態。
+        _chapter_number = chapter_number;
+        _phase = GamePhase.Playing;
+        _seconds_left = Config.Layout.ChapterDurationSeconds;
+        _health = Config.Layout.StartingHealth;
+        _combo = 0;
+        _active_target = null;
+        _frenzy_until = DateTime.MinValue;
+        _bullet_time_until = DateTime.MinValue;
+        _last_spawned_at = DateTime.MinValue;
+        _last_action = "伏擊位置穩定，等待泥層下的輪廓。";
+        _sperger_status = CurrentChapter.Quote;
+        // 建立本章取消來源。
+        _game_cancellation = new CancellationTokenSource();
+        // 重啟準確計時器。
+        _chapter_watch.Restart();
+        // 啟動不阻塞畫面的遊戲迴圈。
+        _game_loop_task = RunGameLoopAsync(_game_cancellation.Token);
+        // 方法沒有其他非同步工作。
+        return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// 使用 PeriodicTimer 推動畫面，Stopwatch 負責準確計算時間。
+    /// </summary>
+    private async Task RunGameLoopAsync(CancellationToken cancellation_token)
+    {
+        // 每一百毫秒更新一次遊戲狀態。
+        using var game_timer = new PeriodicTimer(TimeSpan.FromMilliseconds(100));
+
+        try
+        {
+            // 持續到章節完成或取消。
+            while (await game_timer.WaitForNextTickAsync(cancellation_token))
+            {
+                // 依 Stopwatch 推導整數倒數。
+                var elapsed_seconds = (int)_chapter_watch.Elapsed.TotalSeconds;
+                _seconds_left = Math.Max(0, Config.Layout.ChapterDurationSeconds - elapsed_seconds);
+                // 超感官模式延長標靶停留時間。
+                var target_lifetime = _is_bullet_time ? 1800 : Math.Max(650, 1250 - (_chapter_number * 120));
+
+                // 逾時未擊中的標靶離場並中斷連擊。
+                if (_active_target is not null && (DateTime.UtcNow - _target_spawned_at).TotalMilliseconds >= target_lifetime)
+                {
+                    _active_target = null;
+                    _combo = 0;
+                    _last_action = "目標潛回泥層；連擊已中斷。";
+                }
+
+                // 隨章節加快出現頻率。
+                var spawn_interval = 1050 - (_chapter_number * 130) + (_is_bullet_time ? 450 : 0);
+
+                // 沒有標靶時依間隔產生下一個目標。
+                if (_active_target is null && (DateTime.UtcNow - _last_spawned_at).TotalMilliseconds >= spawn_interval)
+                {
+                    SpawnTarget();
+                }
+
+                // 時間歸零後完成章節。
+                if (_seconds_left <= 0)
+                {
+                    CompleteChapter();
+                    // 離開本章迴圈。
+                    break;
+                }
+
+                // 背景計時變更需要要求 Blazor 局部重繪。
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // 換章或離場造成的取消屬於正常流程。
+        }
+    }
+
+    /// <summary>
+    /// 依 config.yaml 權重選擇標靶與洞穴。
+    /// </summary>
+    private void SpawnTarget()
+    {
+        // 僅使用可對應到 TargetKind 且權重大於零的設定。
+        var candidates = Config.Targets
+            .Where(target => target.Weight > 0 && Enum.TryParse<TargetKind>(target.Kind, true, out _))
+            .ToList();
+        // 計算權重總和。
+        var total_weight = candidates.Sum(target => target.Weight);
+        // 沒有有效標靶時回報設定錯誤。
+        if (total_weight <= 0)
+        {
+            // 中止本次產生，設定驗證會由維護者修正。
+            return;
+        }
+
+        // 取得權重範圍內的亂數。
+        var roll = _random.Next(total_weight);
+        // 預設使用第一筆有效標靶。
+        var selected_target = candidates[0];
+
+        // 逐項扣除權重以找到落點。
+        foreach (var candidate in candidates)
+        {
+            // 亂數落在目前項目時完成選擇。
+            if (roll < candidate.Weight)
+            {
+                selected_target = candidate;
+                break;
+            }
+
+            // 將目前項目權重自剩餘範圍扣除。
+            roll -= candidate.Weight;
+        }
+
+        // 將 YAML 種類文字轉為列舉。
+        _ = Enum.TryParse<TargetKind>(selected_target.Kind, true, out var target_kind);
+        // 建立畫面標靶。
+        _active_target = new GameTarget
+        {
+            HoleIndex = _random.Next(Config.Layout.HoleCount),
+            Kind = target_kind
+        };
+        // 記錄標靶產生時間。
+        _target_spawned_at = DateTime.UtcNow;
+        _last_spawned_at = _target_spawned_at;
+    }
+
+    /// <summary>
+    /// 處理玩家點擊標靶後的得分與特殊效果。
+    /// </summary>
+    private void HitTarget(int hole_index)
+    {
+        // 只處理目前遊戲中的正確洞穴。
+        if (_phase != GamePhase.Playing || _active_target?.HoleIndex != hole_index)
+        {
+            return;
+        }
+
+        // 保存種類後立刻移除標靶以避免重複點擊。
+        var target_kind = _active_target.Kind;
+        _active_target = null;
+
+        // 依標靶種類套用 config.yaml 分數。
+        switch (target_kind)
+        {
+            case TargetKind.CommonBug:
+                AddBugScore(Config.Gameplay.CommonBugScore, "普通異變蟲已轉化為基礎熱量。", "外殼薄、蛋白質穩定。值得記錄，但不必激動。");
+                break;
+            case TargetKind.RareBug:
+                AddBugScore(Config.Gameplay.RareBugScore, "稀有晶岩蟲！高密度蛋白質入手。", "金色不是裝飾，而是孕蟲河精華的證明。");
+                break;
+            case TargetKind.FriendlyCreature:
+                _total_score -= Config.Gameplay.FriendlyPenalty;
+                _friendly_hits++;
+                _combo = 0;
+                _last_action = $"誤傷友善生物，扣除 {Config.Gameplay.FriendlyPenalty} 分。";
+                _sperger_status = "停手。那不是獵物。情緒不能凌駕於生態判讀。";
+                break;
+            case TargetKind.Hazard:
+                _total_score -= Config.Gameplay.HazardPenalty;
+                _hazard_hits++;
+                _health--;
+                _combo = 0;
+                _last_action = $"咬中毒孢子或硬石，扣除 {Config.Gameplay.HazardPenalty} 分與 1 點體力。";
+                _sperger_status = "口器傳來不必要的痛覺。莫氏硬度，確實應該受到尊重。";
+                break;
+            case TargetKind.ActiveBubble:
+                _bullet_time_until = DateTime.UtcNow.AddSeconds(Config.Gameplay.BulletTimeDurationSeconds);
+                _last_action = $"活性氣泡破裂：超感官微觀啟動 {Config.Gameplay.BulletTimeDurationSeconds} 秒。";
+                _sperger_status = "氣味的層次展開了。現在，每一個輪廓都變得清楚。";
+                break;
+        }
+
+        // 體力歸零立即結束遊戲。
+        if (_health <= 0)
+        {
+            FinishGame();
+        }
+    }
+
+    /// <summary>
+    /// 增加昆蟲得分並檢查狂暴條件。
+    /// </summary>
+    private void AddBugScore(int base_score, string action_text, string status_text)
+    {
+        // 狂暴期間套用 YAML 設定倍數。
+        var score_multiplier = _is_frenzy ? Config.Gameplay.FrenzyMultiplier : 1;
+        // 更新分數與捕獲統計。
+        _total_score += base_score * score_multiplier;
+        _bugs_caught++;
+        _combo++;
+        _max_combo = Math.Max(_max_combo, _combo);
+        _last_action = score_multiplier > 1 ? $"{action_text} 狂暴加成 ×{score_multiplier}。" : action_text;
+        _sperger_status = status_text;
+
+        // 達到設定連擊倍數時重新啟動狂暴。
+        if (_combo > 0 && _combo % Config.Gameplay.FrenzyCombo == 0)
+        {
+            _frenzy_until = DateTime.UtcNow.AddSeconds(Config.Gameplay.FrenzyDurationSeconds);
+            _last_action = $"{Config.Gameplay.FrenzyCombo} 次精準捕獲：暴食狂暴啟動。";
+        }
+    }
+
+    /// <summary>
+    /// 決定前往章節過場或最終結算。
+    /// </summary>
+    private void CompleteChapter()
+    {
+        // 停止本章計時與標靶。
+        _chapter_watch.Stop();
+        _active_target = null;
+
+        // 尚有後續章節時顯示過場。
+        if (_chapter_number < Config.Chapters.Count && _health > 0)
+        {
+            _phase = GamePhase.ChapterComplete;
+            _last_action = "章節伏擊完成。";
+        }
+        else
+        {
+            // 最後章或體力耗盡時結算。
+            FinishGame();
+        }
+
+        // 章節結束來自背景迴圈，需要要求局部重繪。
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>
+    /// 進入下一個故事章節。
+    /// </summary>
+    private Task ContinueToNextChapter()
+    {
+        // 將章節索引前進一位。
+        return StartChapterAsync(_chapter_number + 1);
+    }
+
+    /// <summary>
+    /// 組合統計並依 YAML 範本產生結算日誌。
+    /// </summary>
+    private void FinishGame()
+    {
+        // 停止所有即時遊戲工作。
+        CancelGameLoop();
+        _chapter_watch.Stop();
+        _active_target = null;
+        _phase = GamePhase.Result;
+        // 產生本次結算評語。
+        _evaluation = GenerateEvaluation(BuildSessionResult());
+        _is_saved = false;
+        _save_message = string.Empty;
+    }
+
+    /// <summary>
+    /// 開始新一輪並保留目前累積統計。
+    /// </summary>
+    private Task ContinueExpedition()
+    {
+        // 增加遠征輪數。
+        _round_number++;
+        _is_saved = false;
+        _save_message = string.Empty;
+        // 從第一章重新開始。
+        return StartChapterAsync(1);
+    }
+
+    /// <summary>
+    /// 將結果記錄於此瀏覽器的 localStorage 後回到序章。
+    /// </summary>
+    private async Task SaveLocallyAndExit()
+    {
+        // 避免同一結果重複記錄。
+        if (_is_saved || _evaluation is null)
+        {
+            return;
+        }
+
+        // 建立不含敏感資訊的本機分數物件。
+        var score_record = new
+        {
+            Score = _total_score,
+            Rank = _evaluation.Rank,
+            MaxCombo = _max_combo,
+            BugsCaught = _bugs_caught,
+            RecordedAt = DateTimeOffset.UtcNow
+        };
+        // 呼叫靜態 JavaScript 將資料加入 localStorage。
+        await JsRuntime.InvokeVoidAsync("spergerGame.saveScore", score_record);
+        // 更新操作結果文字。
+        _is_saved = true;
+        _save_message = "分數已記錄於此裝置，不會上傳至伺服器。";
+    }
+
+    /// <summary>
+    /// 依調整分數選擇 config.yaml 中的結算範本。
+    /// </summary>
+    private EvaluationResponse GenerateEvaluation(GameSessionResult result)
+    {
+        // 誤傷與危險誤擊會降低評級分數。
+        var adjusted_score = result.FinalScore
+            + (result.MaxCombo * 25)
+            - (result.FriendlyMiscegenationCount * 200)
+            - (result.BombsHitCount * 250);
+        // 由最高門檻向下選擇第一個符合的評級。
+        var evaluation_config = Config.Evaluations
+            .OrderByDescending(evaluation => evaluation.MinimumScore)
+            .FirstOrDefault(evaluation => adjusted_score >= evaluation.MinimumScore)
+            // 設定缺少門檻時提供基本 B 級內容。
+            ?? new EvaluationConfig
+            {
+                Rank = "B",
+                LogTitle = "雨後伏擊觀察紀錄",
+                SummaryTemplate = "捕獲 {bugsCaught} 隻異變蟲。",
+                Quote =
+"保持觀察，下一輪會更精準。"
+            };
+        // 置換 YAML 文字範本中的統計標記。
+        var summary_text = evaluation_config.SummaryTemplate
+            .Replace("{score}", result.FinalScore.ToString("N0"), StringComparison.Ordinal)
+            .Replace("{maxCombo}", result.MaxCombo.ToString(), StringComparison.Ordinal)
+            .Replace("{bugsCaught}", result.BugsCaught.ToString(), StringComparison.Ordinal)
+            .Replace("{friendlyHits}", result.FriendlyMiscegenationCount.ToString(), StringComparison.Ordinal)
+            .Replace("{hazardHits}", result.BombsHitCount.ToString(), StringComparison.Ordinal);
+        // 建立 Agent 規格要求的 DTO。
+        return new EvaluationResponse
+        {
+            Rank = evaluation_config.Rank,
+            LogTitle = evaluation_config.LogTitle,
+            SummaryText = summary_text,
+            SpergerQuote = evaluation_config.Quote
+        };
+    }
+
+    /// <summary>
+    /// 將元件統計轉換為 Agent 規格 DTO。
+    /// </summary>
+    private GameSessionResult BuildSessionResult()
+    {
+        // 建立不可共用的單次結算資料。
+        return new GameSessionResult
+        {
+            FinalScore = _total_score,
+            MaxCombo = _max_combo,
+            BugsCaught = _bugs_caught,
+            FriendlyMiscegenationCount = _friendly_hits,
+            BombsHitCount = _hazard_hits
+        };
+    }
+
+    /// <summary>
+    /// 玩家主動退出時回到序章並停止背景工作。
+    /// </summary>
+    private void AbandonGame()
+    {
+        // 停止背景迴圈與計時。
+        CancelGameLoop();
+        _chapter_watch.Stop();
+        _active_target = null;
+        // 回到故事開場。
+        _phase = GamePhase.Intro;
+    }
+
+    /// <summary>
+    /// 安全取消目前遊戲迴圈。
+    /// </summary>
+    private void CancelGameLoop()
+    {
+        // 沒有取消來源時直接返回。
+        if (_game_cancellation is null)
+        {
+            return;
+        }
+
+        // 通知背景工作結束並釋放資源。
+        _game_cancellation.Cancel();
+        _game_cancellation.Dispose();
+        _game_cancellation = null;
+    }
+
+    /// <summary>
+    /// 取得標靶的 YAML 圖鑑定義。
+    /// </summary>
+    private TargetConfig TargetDefinition(TargetKind target_kind)
+    {
+        // 以忽略大小寫方式尋找對應項目。
+        return Config.Targets.FirstOrDefault(target => string.Equals(target.Kind, target_kind.ToString(),
+StringComparison.OrdinalIgnoreCase))
+            // 缺少定義時提供安全的替代內容。
+            ?? new TargetConfig
+            {
+                Kind = target_kind.ToString(),
+                Name = target_kind.ToString(),
+                Glyph = "?",
+                ScoreLabel =
+string.Empty,
+                AccessibleLabel = target_kind.ToString()
+            };
+    }
+
+    /// <summary>
+    /// 將標靶名稱轉為現有 CSS 類別。
+    /// </summary>
+    private static string TargetCssClass(string target_kind)
+    {
+        // 使用固定映射避免設定文字成為任意 CSS 類別。
+        return target_kind.ToLowerInvariant() switch
+        {
+            "commonbug" => "common",
+            "rarebug" => "rarebug",
+            "friendlycreature" => "friendlycreature",
+            "hazard" => "hazard",
+            "activebubble" => "activebubble",
+            _ => "common"
+        };
+    }
+
+    /// <summary>
+    /// 取得標靶無障礙文字。
+    /// </summary>
+    private string TargetLabel(TargetKind target_kind)
+    {
+        // 直接使用 YAML 維護的完整語意標籤。
+        return TargetDefinition(target_kind).AccessibleLabel;
+    }
+
+    /// <summary>
+    /// 元件離開時終止背景計時工作。
+    /// </summary>
+    public async ValueTask DisposeAsync()
+    {
+        // 通知目前迴圈取消。
+        CancelGameLoop();
+
+        // 已啟動背景工作時等待其正常收尾。
+        if (_game_loop_task is not null)
+        {
+            try
+            {
+                // 等待取消傳遞完成。
+                await _game_loop_task;
+            }
+            catch (OperationCanceledException)
+            {
+                // 取消完成代表背景工作已正常結束。
+            }
+        }
+    }
+}

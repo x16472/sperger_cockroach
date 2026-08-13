@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<!-- 設定頁面主要語言為台灣正體中文。 -->
+<html lang="zh-Hant-TW">
+<head>
+    <!-- 使用 UTF-8 呈現正體中文內容。 -->
+    <meta charset="utf-8" />
+    <!-- 讓響應式版面符合裝置寬度。 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- GitHub Actions 發布時會將此基底路徑改為儲存庫名稱。 -->
+    <base href="/" />
+    <!-- 設定瀏覽器與分享預覽的基本資訊。 -->
+    <title>Sperger Cockroach｜蟲鳴谷：泥沼暴食伏擊</title>
+    <meta name="description" content="以斯柏格．費里尼為主角的 .NET 10 Blazor WebAssembly 互動式文字冒險與泥沼伏擊遊戲。" />
+    <!-- 載入全域與 Razor 元件隔離樣式。 -->
+    <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="sperger_cockroach.styles.css" />
+    <!-- 使用專案內的網站圖示。 -->
+    <link rel="icon" type="image/png" href="favicon.png" />
+</head>
+<body>
+    <!-- Blazor 會將應用程式掛載至此節點。 -->
+    <div id="app">
+        <main class="boot-state" aria-live="polite">正在進入蟲鳴谷……</main>
+    </div>
+    <!-- 顯示未處理錯誤並提供重新載入操作。 -->
+    <div id="blazor-error-ui">
+        遊戲發生未預期錯誤。
+        <a href="." class="reload">重新載入</a>
+        <button class="dismiss" type="button">關閉</button>
+    </div>
+    <!-- 提供此裝置的本機分數紀錄功能。 -->
+    <script src="game-storage.js"></script>
+    <!-- 啟動獨立式 Blazor WebAssembly 執行階段。 -->
+    <script src="_framework/blazor.webassembly.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+@* 獨立式 WebAssembly 應用程式以 Router 負責頁面切換。 *@
+<Router AppAssembly="typeof(Program).Assembly">
+    @* 找到路由時套用主版面並顯示頁面。 *@
+    <Found Context="route_data">
+        <RouteView RouteData="route_data" DefaultLayout="typeof(Layout.MainLayout)" />
+        <FocusOnNavigate RouteData="route_data" Selector="h1" />
+    </Found>
+    @* 找不到路由時顯示純前台的錯誤頁。 *@
+    <NotFound>
+        <LayoutView Layout="typeof(Layout.MainLayout)">
+            <DynamicComponent Type="typeof(sperger_cockroach.Components.Pages.NotFound)" />
+        </LayoutView>
+    </NotFound>
+</Router>
