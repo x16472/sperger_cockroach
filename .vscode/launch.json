@@ -6,15 +6,13 @@
       "type": "chrome",
       "request": "launch",
       "cwd": "${workspaceFolder}",
-      "url": "http://localhost:5044",
-      "timeout": 60000
+      "url": "http://localhost:5044"
     },
     {
       "name": "Blazor WASM：附加至現有站台",
       "type": "chrome",
       "request": "attach",
-      "url": "http://localhost:5044",
-      "timeout": 60000
+      "url": "http://localhost:5044"
     }
   ]
 }

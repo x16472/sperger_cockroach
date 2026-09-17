@@ -237,7 +237,9 @@
                 double remaining = Config.Layout.ChapterDurationSeconds
                     - _chapter_watch.Elapsed.TotalSeconds
                     - _session.TimePenaltySeconds;
-                _seconds_left = Math.Max(0, (int)Math.Ceiling(remaining));
+                int next_seconds_left = Math.Max(0, (int)Math.Ceiling(remaining));
+                bool requires_render = next_seconds_left != _seconds_left;
+                _seconds_left = next_seconds_left;
 
                 if (_seconds_left <= 0)
                 {
@@ -248,9 +250,13 @@
                 if (DateTimeOffset.UtcNow >= _next_spawn_at)
                 {
                     SpawnTarget();
+                    requires_render = true;
                 }
 
-                await InvokeAsync(StateHasChanged);
+                if (requires_render)
+                {
+                    await InvokeAsync(StateHasChanged);
+                }
             }
         }
         catch (OperationCanceledException)

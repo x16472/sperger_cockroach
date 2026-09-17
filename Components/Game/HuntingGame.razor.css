@@ -1,16 +1,21 @@
-/* 自適應瀏覽器高度：讓整個狩獵區在視窗內盡量完整顯示 */
 .hunt-section {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  min-height: 0;
-  max-height: 100dvh;
-  overflow: hidden;
+  min-height: calc(100dvh - 72px);
+  padding: clamp(24px, 4vw, 56px) clamp(16px, 4vw, 48px);
+  width: 100%;
+}
+.hunt-section *,
+.hunt-section *::before,
+.hunt-section *::after {
   box-sizing: border-box;
 }
 
 .hunt-heading {
-  margin: 0 auto 34px;
-  max-width: 1024px;
+  margin: 0 auto clamp(20px, 3vw, 34px);
+  max-width: 1320px;
+  width: 100%;
 }
 .hunt-heading > span,
 .intermission-card > span,
@@ -36,6 +41,7 @@
   grid-template-columns: minmax(260px, 0.65fr) 2fr;
   margin: 0 auto;
   max-width: 1180px;
+  width: 100%;
 }
 .difficulty-card {
   background: #173e2a;
@@ -74,6 +80,9 @@
 }
 .chapter-list article {
   background: #ded6bf;
+  contain: layout paint style;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 260px;
   min-height: 260px;
   padding: 24px;
 }
@@ -98,6 +107,7 @@
   margin-left: auto;
   margin-right: auto;
   max-width: 1320px;
+  width: 100%;
 }
 .game-topline {
   align-items: center;
@@ -148,22 +158,28 @@
   margin-top: 5px;
 }
 .play-layout {
+  align-items: stretch;
   display: grid;
   gap: 14px;
-  grid-template-columns: minmax(0, 1.75fr) minmax(250px, 0.6fr);
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
   margin-top: 14px;
 }
 .hunting-board {
   aspect-ratio: 1;
   background: url("images/BackGround.jpg") center / cover;
+  contain: layout paint style;
   cursor:
     url("images/CustomCursor.png") 4 4,
     crosshair;
   display: grid;
   gap: 1px;
+  isolation: isolate;
+  justify-self: end;
+  max-width: 760px;
   overflow: hidden;
   padding: clamp(3px, 0.8vw, 10px);
   position: relative;
+  width: 100%;
 }
 .hunting-board::before {
   background: rgba(16, 35, 26, 0.18);
@@ -176,6 +192,7 @@
   aspect-ratio: 1;
   background: rgba(244, 240, 228, 0.05);
   border: 1px solid rgba(244, 240, 228, 0.17);
+  contain: layout paint;
   cursor: inherit;
   min-width: 0;
   padding: 0;
@@ -204,7 +221,10 @@
 .hunt-console {
   background: #173e2a;
   color: #f4f0e4;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  overflow: hidden;
   padding: clamp(22px, 3vw, 36px);
 }
 .hunt-console > small {
@@ -217,6 +237,7 @@
   font-family: Georgia, "Noto Serif TC", serif;
   font-size: 1.7rem;
   font-weight: 400;
+  margin: 10px 0;
 }
 .hunt-console blockquote {
   border-left: 2px solid #ef7b45;
@@ -245,9 +266,11 @@
   font-size: 0.75rem;
 }
 .hunt-console ol {
+  flex: 1;
   font-size: 0.72rem;
   line-height: 1.5;
-  max-height: 240px;
+  margin-bottom: 0;
+  min-height: 0;
   overflow: auto;
   padding-left: 20px;
 }
@@ -309,6 +332,7 @@
   grid-template-columns: 1.5fr 0.75fr;
   margin: 0 auto;
   max-width: 1180px;
+  width: 100%;
 }
 .result-card {
   align-items: center;
@@ -402,14 +426,42 @@
     min-height: 0;
   }
   .hunt-console {
-    min-height: 260px;
+    justify-self: center;
+    max-width: 680px;
+    min-height: 0;
+    overflow: visible;
+    width: 100%;
+  }
+  .hunt-console ol {
+    max-height: 200px;
+  }
+  .hunting-board {
+    justify-self: center;
+    max-width: 680px;
+  }
+}
+
+@media (min-width: 901px) and (max-height: 850px) {
+  .hunt-section {
+    padding-block: 18px;
+  }
+  .hunt-heading {
+    margin-bottom: 14px;
+  }
+  .hunt-heading h2 {
+    font-size: clamp(1.9rem, 3vw, 3rem);
+  }
+  .hunt-heading p {
+    margin-bottom: 0;
+  }
+  .hunting-board {
+    max-width: min(100%, calc(100dvh - 18rem));
   }
 }
 
 @media (max-width: 600px) {
   .hunt-section {
-    padding-left: 8px;
-    padding-right: 8px;
+    padding: 20px 8px 28px;
   }
   .hunt-heading,
   .ready-layout {
@@ -417,6 +469,8 @@
     padding-right: 10px;
   }
   .game-topline {
+    flex-wrap: wrap;
+    gap: 12px 20px;
     padding: 0 6px;
   }
   .scoreboard {
