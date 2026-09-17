@@ -1,0 +1,439 @@
+@implements IAsyncDisposable
+@using System.Diagnostics
+@inject GameRulesService Rules
+@inject IJSRuntime JsRuntime
+
+<section class="hunt-section" id="hunt" aria-labelledby="hunt-title">
+    <div class="hunt-heading">
+        <span>PRIMARY EXPEDITION / 10 × 10</span>
+        <h2 id="hunt-title">斯柏格的泥潭狩獵</h2>
+        <p>三章各二十秒。辨認獵物、控制倍率，累積到 @Config.Gameplay.TargetScore 分即可在章末完成遠征。</p>
+    </div>
+
+    @if (_phase == GamePhase.Ready)
+    {
+        <div class="ready-layout">
+            <div class="difficulty-card">
+                <label for="difficulty">選擇獵物出現速度</label>
+                <select id="difficulty" value="@_selected_level" @onchange="ChangeDifficulty">
+                    <option value="">請選擇難度</option>
+                    @foreach (var difficulty in Config.Difficulties)
+                    {
+                        <option value="@difficulty.Level">@difficulty.Name · @difficulty.SpawnIntervalMilliseconds ms</option>
+                    }
+                </select>
+                <button type="button" disabled="@(SelectedDifficulty is null)" @onclick="BeginExpedition">
+                    @Config.Intro.StartButton
+                </button>
+            </div>
+
+            <div class="chapter-list">
+                @for (var chapter_index = 0; chapter_index < Config.Chapters.Count; chapter_index++)
+                {
+                    var chapter = Config.Chapters[chapter_index];
+                    <article>
+                        <small>CHAPTER @(chapter_index + 1)</small>
+                        <h3>@chapter.Title</h3>
+                        <p>@chapter.Story</p>
+                    </article>
+                }
+            </div>
+        </div>
+    }
+    else if (_phase == GamePhase.Playing)
+    {
+        <div class="game-topline">
+            <div><small>章節</small><strong>@_session.ChapterNumber / @Config.Chapters.Count</strong></div>
+            <div><small>難度</small><strong>@SelectedDifficulty?.Name</strong></div>
+            <button type="button" @onclick="AbandonGame">退出狩獵</button>
+        </div>
+
+        <div class="scoreboard" aria-label="即時遊戲資訊">
+            <div><small>積分</small><strong>@_session.Score / @Config.Gameplay.TargetScore</strong></div>
+            <div><small>倍率</small><strong>× @_session.Multiplier</strong></div>
+            <div><small>剩餘時間</small><strong>@_seconds_left 秒</strong></div>
+            <div><small>目前章節</small><strong>@CurrentChapter.Title</strong></div>
+        </div>
+
+        <div class="play-layout">
+            <div class="hunting-board"
+                 style="grid-template-columns: repeat(@Config.Layout.BoardColumns, minmax(0, 1fr))"
+                 aria-label="十乘十泥沼狩獵盤面">
+                @for (var cell_index = 0; cell_index < BoardCellCount; cell_index++)
+                {
+                    var current_cell = cell_index;
+                    var active_target = _active_target?.CellIndex == current_cell ? _active_target.Definition : null;
+                    <button type="button"
+                            class="@(_feedback_cell == current_cell ? "hit-feedback" : active_target is not null ? "occupied" : string.Empty)"
+                            aria-label="@(active_target?.AccessibleLabel ?? $"泥穴 {current_cell + 1}，目前沒有目標")"
+                            @onclick="() => HitCell(current_cell)">
+                        @if (active_target is not null)
+                        {
+                            <img src="@active_target.Image" alt="" draggable="false" />
+                        }
+                    </button>
+                }
+            </div>
+
+            <aside class="hunt-console">
+                <small>@CurrentChapter.Kicker</small>
+                <h3>@CurrentChapter.Title</h3>
+                <blockquote>「@_sperger_status」</blockquote>
+
+                @if (_last_preview is not null)
+                {
+                    <div class="target-preview">
+                        <img src="@_last_preview.Image" alt="" />
+                        <span><b>@_last_preview.Name</b>@_last_preview.ScoreLabel</span>
+                    </div>
+                }
+
+                <ol aria-label="最近狩獵紀錄">
+                    @foreach (var message in _log.Take(8))
+                    {
+                        <li>@message</li>
+                    }
+                </ol>
+            </aside>
+        </div>
+
+        <p class="live-status" role="status" aria-live="polite">@_last_action</p>
+    }
+    else if (_phase == GamePhase.ChapterComplete)
+    {
+        <article class="intermission-card">
+            <span>CHAPTER @_session.ChapterNumber COMPLETE</span>
+            <h2>@CurrentChapter.Title</h2>
+            <p>@CurrentChapter.Story</p>
+            <blockquote>「@CurrentChapter.Quote」</blockquote>
+            <dl>
+                <div><dt>目前積分</dt><dd>@_session.Score</dd></div>
+                <div><dt>目前倍率</dt><dd>× @_session.Multiplier</dd></div>
+                <div><dt>成功命中</dt><dd>@_session.SuccessfulHits</dd></div>
+            </dl>
+            <button type="button" @onclick="ContinueToNextChapter">前往下一處狩獵點</button>
+        </article>
+    }
+    else if (_phase == GamePhase.Result && _evaluation is not null)
+    {
+        <div class="result-layout">
+            <article class="result-card">
+                <div class="rank-seal"><small>狩獵評級</small><strong>@_evaluation.Rank</strong></div>
+                <div>
+                    <span>SPERGER'S FIELD LOG</span>
+                    <h2>@_evaluation.Title</h2>
+                    <p>「@_result_phrase」</p>
+                    <blockquote>@_evaluation.Review</blockquote>
+                </div>
+            </article>
+
+            <aside class="result-details">
+                <h3>本次遠征</h3>
+                <dl>
+                    <div><dt>難度</dt><dd>@SelectedDifficulty?.Name</dd></div>
+                    <div><dt>日期</dt><dd>@_started_at.ToString("yyyy/MM/dd")</dd></div>
+                    <div><dt>開始時間</dt><dd>@_started_at.ToString("HH:mm:ss")</dd></div>
+                    <div><dt>結束時間</dt><dd>@_ended_at.ToString("HH:mm:ss")</dd></div>
+                    <div><dt>有效時間</dt><dd>@_active_elapsed_seconds.ToString("F1") 秒</dd></div>
+                    <div><dt>總分</dt><dd>@_session.Score / @Config.Gameplay.TargetScore</dd></div>
+                </dl>
+                <button type="button" class="primary" @onclick="BeginExpedition">再玩一局</button>
+                <button type="button" @onclick="SaveResult" disabled="@_is_saved">@(_is_saved ? "已保存於此裝置" : "保存成績")</button>
+                <button type="button" @onclick="ReturnToReady">返回難度選擇</button>
+                @if (!string.IsNullOrWhiteSpace(_save_message))
+                {
+                    <p role="status">@_save_message</p>
+                }
+            </aside>
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired]
+    public GameConfig Config { get; set; } = new();
+
+    [Parameter]
+    public EventCallback ScoreSaved { get; set; }
+
+    private readonly Random _random = new();
+    private readonly Stopwatch _chapter_watch = new();
+    private readonly List<string> _log = [];
+    private GameSessionState _session = new();
+    private GamePhase _phase = GamePhase.Ready;
+    private ActiveTarget? _active_target;
+    private TargetConfig? _last_preview;
+    private EvaluationResponse? _evaluation;
+    private CancellationTokenSource? _game_cancellation;
+    private Task? _game_loop_task;
+    private string _selected_level = string.Empty;
+    private string _last_action = "請先選擇難度。";
+    private string _sperger_status = "等待值得出手的輪廓。";
+    private string _result_phrase = string.Empty;
+    private string _save_message = string.Empty;
+    private DateTimeOffset _next_spawn_at;
+    private DateTimeOffset _started_at;
+    private DateTimeOffset _ended_at;
+    private double _active_elapsed_seconds;
+    private int _seconds_left;
+    private int? _feedback_cell;
+    private int _feedback_generation;
+    private bool _is_saved;
+
+    private int BoardCellCount => Config.Layout.BoardRows * Config.Layout.BoardColumns;
+    private DifficultyConfig? SelectedDifficulty => Enum.TryParse<DifficultyLevel>(_selected_level, out var level)
+        ? Config.Difficulties.FirstOrDefault(difficulty => difficulty.Level == level)
+        : null;
+    private ChapterConfig CurrentChapter => Config.Chapters[_session.ChapterNumber - 1];
+
+    private void ChangeDifficulty(ChangeEventArgs args)
+    {
+        _selected_level = args.Value?.ToString() ?? string.Empty;
+    }
+
+    private Task BeginExpedition()
+    {
+        if (SelectedDifficulty is null)
+        {
+            _last_action = "請先選擇難度。";
+            return Task.CompletedTask;
+        }
+
+        _session = new GameSessionState();
+        _started_at = DateTimeOffset.Now;
+        _active_elapsed_seconds = 0;
+        _evaluation = null;
+        _is_saved = false;
+        _save_message = string.Empty;
+        _log.Clear();
+        return StartChapter(1);
+    }
+
+    private Task StartChapter(int chapter_number)
+    {
+        CancelGameLoop();
+        _session.ChapterNumber = chapter_number;
+        _session.TimePenaltySeconds = 0;
+        _phase = GamePhase.Playing;
+        _seconds_left = Config.Layout.ChapterDurationSeconds;
+        _last_action = "狩獵位置穩定，等待泥層下的輪廓。";
+        _sperger_status = CurrentChapter.Quote;
+        _feedback_cell = null;
+        _last_preview = null;
+        _chapter_watch.Restart();
+        SpawnTarget();
+        _game_cancellation = new CancellationTokenSource();
+        _game_loop_task = RunGameLoop(_game_cancellation.Token);
+        return Task.CompletedTask;
+    }
+
+    private async Task RunGameLoop(CancellationToken cancellation_token)
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(50));
+        try
+        {
+            while (_phase == GamePhase.Playing && await timer.WaitForNextTickAsync(cancellation_token))
+            {
+                var remaining = Config.Layout.ChapterDurationSeconds
+                    - _chapter_watch.Elapsed.TotalSeconds
+                    - _session.TimePenaltySeconds;
+                _seconds_left = Math.Max(0, (int)Math.Ceiling(remaining));
+
+                if (_seconds_left <= 0)
+                {
+                    CompleteChapter();
+                    break;
+                }
+
+                if (DateTimeOffset.UtcNow >= _next_spawn_at)
+                {
+                    SpawnTarget();
+                }
+
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // 換章、重新開始或離開頁面造成的正常取消。
+        }
+    }
+
+    private void SpawnTarget()
+    {
+        var total_weight = Config.Targets.Sum(target => target.Weight);
+        var target = Rules.SelectTarget(Config.Targets, _random.Next(total_weight));
+        _active_target = new ActiveTarget(_random.Next(BoardCellCount), target);
+        _next_spawn_at = DateTimeOffset.UtcNow.AddMilliseconds(SelectedDifficulty?.SpawnIntervalMilliseconds ?? 750);
+    }
+
+    private async Task HitCell(int cell_index)
+    {
+        if (_phase != GamePhase.Playing)
+        {
+            return;
+        }
+
+        if (_active_target?.CellIndex != cell_index)
+        {
+            _session.Misses++;
+            _last_action = "撲空了。目標仍在原處。";
+            AddLog(_last_action);
+            await JsRuntime.InvokeVoidAsync("spergerGame.playInteractionSound", "Miss");
+            return;
+        }
+
+        var hit_target = _active_target.Definition;
+        _active_target = null;
+        _last_preview = hit_target;
+        var effect = Rules.ApplyTarget(_session, hit_target, Config.Gameplay);
+        _last_action = $"{hit_target.Reaction} {effect.Message}";
+        _sperger_status = hit_target.Reaction;
+        AddLog(_last_action);
+        await JsRuntime.InvokeVoidAsync("spergerGame.playInteractionSound", hit_target.Category.ToString());
+        ShowHitFeedback(cell_index);
+
+        var remaining = Config.Layout.ChapterDurationSeconds
+            - _chapter_watch.Elapsed.TotalSeconds
+            - _session.TimePenaltySeconds;
+        if (remaining <= 0)
+        {
+            CompleteChapter();
+        }
+    }
+
+    private async void ShowHitFeedback(int cell_index)
+    {
+        var generation = ++_feedback_generation;
+        _feedback_cell = cell_index;
+        await Task.Delay(Config.Layout.HitFeedbackMilliseconds);
+        if (generation != _feedback_generation)
+        {
+            return;
+        }
+
+        _feedback_cell = null;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void CompleteChapter()
+    {
+        if (_phase != GamePhase.Playing)
+        {
+            return;
+        }
+
+        _chapter_watch.Stop();
+        _active_elapsed_seconds += _chapter_watch.Elapsed.TotalSeconds;
+        _active_target = null;
+
+        if (Rules.ShouldFinishExpedition(_session.Score, _session.ChapterNumber, Config))
+        {
+            FinishGame();
+            return;
+        }
+
+        _phase = GamePhase.ChapterComplete;
+        _last_action = "章節狩獵完成。";
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private Task ContinueToNextChapter()
+    {
+        return StartChapter(_session.ChapterNumber + 1);
+    }
+
+    private void FinishGame()
+    {
+        _chapter_watch.Stop();
+        _ended_at = DateTimeOffset.Now;
+        _evaluation = Rules.Evaluate(_session.Score, Config.Evaluations);
+        _result_phrase = Config.SpergerPhrases[_random.Next(Config.SpergerPhrases.Count)];
+        _phase = GamePhase.Result;
+        _is_saved = false;
+        _save_message = string.Empty;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SaveResult()
+    {
+        if (_is_saved || _evaluation is null || SelectedDifficulty is null)
+        {
+            return;
+        }
+
+        var record = new ScoreRecord
+        {
+            Difficulty = SelectedDifficulty.Name,
+            Score = _session.Score,
+            Rank = _evaluation.Rank,
+            ChapterReached = _session.ChapterNumber,
+            Multiplier = _session.Multiplier,
+            SuccessfulHits = _session.SuccessfulHits,
+            Misses = _session.Misses,
+            StartedAt = _started_at,
+            EndedAt = _ended_at,
+            ActiveSeconds = _active_elapsed_seconds
+        };
+
+        await JsRuntime.InvokeVoidAsync("spergerGame.saveScore", record);
+        _is_saved = true;
+        _save_message = "成績已保存於此瀏覽器，不會上傳。";
+        await ScoreSaved.InvokeAsync();
+    }
+
+    private void ReturnToReady()
+    {
+        CancelGameLoop();
+        _phase = GamePhase.Ready;
+        _last_action = "請選擇難度。";
+    }
+
+    private void AbandonGame()
+    {
+        CancelGameLoop();
+        _chapter_watch.Stop();
+        _active_target = null;
+        _phase = GamePhase.Ready;
+        _last_action = "本次狩獵已退出。";
+    }
+
+    private void AddLog(string message)
+    {
+        _log.Insert(0, $"{DateTime.Now:HH:mm:ss}　{message}");
+        if (_log.Count > 30)
+        {
+            _log.RemoveAt(_log.Count - 1);
+        }
+    }
+
+    private void CancelGameLoop()
+    {
+        if (_game_cancellation is null)
+        {
+            return;
+        }
+
+        _game_cancellation.Cancel();
+        _game_cancellation.Dispose();
+        _game_cancellation = null;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        CancelGameLoop();
+        if (_game_loop_task is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _game_loop_task;
+        }
+        catch (OperationCanceledException)
+        {
+            // 取消完成代表背景計時已正常結束。
+        }
+    }
+}

@@ -1,0 +1,172 @@
+@implements IAsyncDisposable
+@inject GameRulesService Rules
+@inject IJSRuntime JsRuntime
+
+<section class="treasure-section" id="treasure" aria-labelledby="treasure-title">
+    <div class="treasure-copy">
+        <span>SIDE QUEST / COIN TRACE</span>
+        <h2 id="treasure-title">@Config.Title</h2>
+        <p>@Config.Introduction</p>
+
+        @if (!_is_playing && !_is_complete)
+        {
+            <button class="treasure-action" type="button" @onclick="StartGame">接受委託</button>
+        }
+        else
+        {
+            <dl>
+                <div><dt>分數</dt><dd>@_score / @(Config.CoinCount * Config.ScorePerCoin)</dd></div>
+                <div><dt>找到金幣</dt><dd>@_coins_found / @Config.CoinCount</dd></div>
+                <div><dt>經過時間</dt><dd>@_elapsed_seconds 秒</dd></div>
+            </dl>
+            <p class="treasure-status" role="status" aria-live="polite">@_status</p>
+            @if (_is_complete)
+            {
+                <button class="treasure-action" type="button" @onclick="StartGame">重新尋寶</button>
+            }
+        }
+    </div>
+
+    @if (_is_playing || _is_complete)
+    {
+        <div class="treasure-board"
+             style="grid-template-columns: repeat(@Config.Columns, minmax(0, 1fr))"
+             aria-label="九乘十九尋寶盤面">
+            @for (var cell_index = 0; cell_index < Config.Rows * Config.Columns; cell_index++)
+            {
+                var current_cell = cell_index;
+                var is_revealed = _revealed_cells.Contains(current_cell);
+                var is_coin = is_revealed && _coin_cells.Contains(current_cell);
+                <button type="button"
+                        class="@(is_coin ? "coin" : is_revealed ? "empty" : string.Empty)"
+                        disabled="@(!_is_playing || is_revealed)"
+                        aria-label="@(is_revealed ? is_coin ? "已找到金幣" : "已檢查的空格" : $"未檢查格 {current_cell + 1}")"
+                        @onclick="() => RevealCell(current_cell)">
+                    @(is_coin ? "幣" : is_revealed ? string.Empty : "?")
+                </button>
+            }
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired]
+    public TreasureConfig Config { get; set; } = new();
+
+    private readonly Random _random = new();
+    private HashSet<int> _coin_cells = [];
+    private readonly HashSet<int> _revealed_cells = [];
+    private CancellationTokenSource? _timer_cancellation;
+    private Task? _timer_task;
+    private bool _is_playing;
+    private bool _is_complete;
+    private int _score;
+    private int _coins_found;
+    private int _elapsed_seconds;
+    private DateTimeOffset _started_at;
+    private DateTimeOffset? _ended_at;
+    private string _status = string.Empty;
+
+    private void StartGame()
+    {
+        CancelTimer();
+        _coin_cells = Rules.PlaceTreasure(Config.Rows, Config.Columns, Config.CoinCount, _random);
+        _revealed_cells.Clear();
+        _score = 0;
+        _coins_found = 0;
+        _elapsed_seconds = 0;
+        _started_at = DateTimeOffset.Now;
+        _ended_at = null;
+        _status = "委託開始。仔細觀察每一塊地面。";
+        _is_complete = false;
+        _is_playing = true;
+        _timer_cancellation = new CancellationTokenSource();
+        _timer_task = RunTimerAsync(_timer_cancellation.Token);
+    }
+
+    private async Task RunTimerAsync(CancellationToken cancellation_token)
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        try
+        {
+            while (await timer.WaitForNextTickAsync(cancellation_token))
+            {
+                _elapsed_seconds = (int)(DateTimeOffset.Now - _started_at).TotalSeconds;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // 離開元件或完成尋寶時的正常取消。
+        }
+    }
+
+    private async Task RevealCell(int cell_index)
+    {
+        if (!_is_playing)
+        {
+            return;
+        }
+
+        var reveal = Rules.RevealTreasure(_revealed_cells, _coin_cells, cell_index, Config.ScorePerCoin);
+        if (!reveal.WasRevealed)
+        {
+            return;
+        }
+
+        if (!reveal.IsCoin)
+        {
+            _status = "這一格只有泥土。繼續觀察。";
+            await JsRuntime.InvokeVoidAsync("spergerGame.playInteractionSound", "Miss");
+            return;
+        }
+
+        _coins_found++;
+        _score += reveal.AwardedScore;
+        var phrase = Config.Phrases[_random.Next(Config.Phrases.Count)];
+        _status = $"找到第 {_coins_found} 枚金幣：{phrase}！";
+        await JsRuntime.InvokeVoidAsync("spergerGame.playInteractionSound", "Coin");
+
+        if (_coins_found < Config.CoinCount)
+        {
+            return;
+        }
+
+        _is_playing = false;
+        _is_complete = true;
+        _ended_at = DateTimeOffset.Now;
+        _elapsed_seconds = (int)(_ended_at.Value - _started_at).TotalSeconds;
+        _status = $"委託完成。{_started_at:HH:mm:ss} 開始，{_ended_at:HH:mm:ss} 結束，總分 {_score} 分。";
+        CancelTimer();
+    }
+
+    private void CancelTimer()
+    {
+        if (_timer_cancellation is null)
+        {
+            return;
+        }
+
+        _timer_cancellation.Cancel();
+        _timer_cancellation.Dispose();
+        _timer_cancellation = null;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        CancelTimer();
+        if (_timer_task is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _timer_task;
+        }
+        catch (OperationCanceledException)
+        {
+            // 取消完成代表背景計時已正常結束。
+        }
+    }
+}

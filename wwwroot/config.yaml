@@ -1,39 +1,46 @@
-# 網站品牌與頁尾文字。
 site:
   title: "Sperger Cockroach｜蟲鳴谷：泥沼暴食狩獵"
   brand: "蟲鳴谷"
-  subtitle: "異世界狩獵紀錄"
+  subtitle: "斯柏格的獵食行動"
   footerLabel: "孕蟲河生態獵場"
 
-# 開場故事與主要操作文字。
 intro:
   kicker: "序章／雨後的蛋白質召喚"
   headline: "泥沼很糟。"
   headlineAccent: "狩獵很優雅。"
-  lead: "絕壁環繞的蟲鳴谷剛下過一場雨。孕蟲河喚醒了地底的巨型昆蟲，也把每條路都變成斯柏格最討厭的黏膩爛泥。"
+  lead: "絕壁環繞的蟲鳴谷剛下過一場雨。孕蟲河喚醒地底的巨型昆蟲，也讓極少數友善小動物離開藏身處。斯柏格決定站在原地，等待獵物自己送上門。"
   quote: "移動會增加污泥附著面積。讓獵物自己送上門，才是兼顧熱量與尊嚴的理性解。"
   quoteBy: "斯柏格．費里尼，變異美國蟑螂／博學的美食家"
   startButton: "進入狩獵獵場"
 
-# 畫面布局與遊戲時間參數。
 layout:
+  boardRows: 10
+  boardColumns: 10
   chapterDurationSeconds: 20
-  holeCount: 9
-  holeColumns: 3
-  startingHealth: 3
+  hitFeedbackMilliseconds: 300
 
-# 得分、扣分及特殊模式參數。
 gameplay:
-  commonBugScore: 100
-  rareBugScore: 300
-  friendlyPenalty: 150
-  hazardPenalty: 300
-  frenzyCombo: 10
-  frenzyDurationSeconds: 6
-  frenzyMultiplier: 2
-  bulletTimeDurationSeconds: 3
+  targetScore: 100
+  maximumMultiplier: 4
+  woodTimePenaltySeconds: 5
 
-# 三章式故事流程。
+difficulties:
+  - level: Hell
+    name: "地獄級"
+    spawnIntervalMilliseconds: 350
+  - level: Hard
+    name: "困難"
+    spawnIntervalMilliseconds: 500
+  - level: Normal
+    name: "普通"
+    spawnIntervalMilliseconds: 750
+  - level: Easy
+    name: "簡單"
+    spawnIntervalMilliseconds: 1000
+  - level: Beginner
+    name: "新手"
+    spawnIntervalMilliseconds: 1300
+
 chapters:
   - title: "雨後爛泥與蛋白質的召喚"
     kicker: "MUD CAVITY / 01"
@@ -41,80 +48,131 @@ chapters:
     quote: "泥巴很討厭，但這些異變甲蟲的蛋白質確實優質。"
   - title: "高難度狩獵的考驗"
     kicker: "PREGNANT RIVER / 02"
-    story: "狩獵線轉向河畔。礦物化外殼與毒性孢子混入獵物群，感官判斷比速度更加重要。"
-    quote: "盲目啃咬莫氏硬度過高的東西，依然是不智之舉。"
+    story: "狩獵線轉向河畔。木柴與友善生物混入獵物群，感官判斷比速度更加重要。"
+    quote: "盲目啃咬是不智之舉；每個輪廓都值得先行辨認。"
   - title: "暴食領主的割草盛宴"
     kicker: "DEEP SWAMP / 03"
-    story: "深處蟲潮湧現。斯柏格釋放兇惡氣場，在不傷及谷中生態的前提下完成最後狩獵。"
+    story: "深處蟲潮湧現。斯柏格在不傷及谷中生態的前提下，完成最後一輪狩獵。"
     quote: "喧囂將退去。今晚的能量上限，就由這一輪決定。"
 
-# 標靶圖鑑、無障礙標籤與隨機出現權重。
 targets:
-  - kind: "CommonBug"
-    category: "基礎獵物"
-    name: "普通異變蟲"
-    scoreLabel: "+100"
-    description: "穩定蛋白質來源，適合建立連擊。"
-    glyph: "甲"
-    accessibleLabel: "普通異變蟲，加一百分"
-    weight: 48
-  - kind: "RareBug"
-    category: "高階美食"
-    name: "稀有晶岩蟲"
-    scoreLabel: "+300"
-    description: "金色螢光一閃即逝，值得優先捕獲。"
-    glyph: "晶"
-    accessibleLabel: "稀有晶岩蟲，加三百分"
-    weight: 18
-  - kind: "FriendlyCreature"
-    category: "生態友軍"
-    name: "友善小生物"
-    scoreLabel: "-150"
-    description: "請克制本能；誤傷將中斷所有連擊。"
-    glyph: "善"
-    accessibleLabel: "友善生物，請勿攻擊"
-    weight: 11
-  - kind: "Hazard"
-    category: "危險陷阱"
-    name: "毒孢子與硬石"
-    scoreLabel: "-300"
-    description: "損失一點體力，體力歸零即終止狩獵。"
-    glyph: "危"
-    accessibleLabel: "毒孢子或硬石，請勿攻擊"
-    weight: 16
-  - kind: "ActiveBubble"
-    category: "感官觸媒"
-    name: "孕蟲河活性氣泡"
-    scoreLabel: "SLOW"
-    description: "啟動三秒超感官微觀，延長辨識時間。"
-    glyph: "泡"
-    accessibleLabel: "孕蟲河活性氣泡，啟動時間減速"
+  - category: NormalBug
+    group: "基礎獵物"
+    name: "普通毛毛蟲"
+    scoreLabel: "+10"
+    description: "最常出現的穩定蛋白質來源。"
+    accessibleLabel: "普通毛毛蟲，加十分"
+    image: "images/Bug1.png"
+    reaction: "正常蛋白質入手。"
+    score: 10
+    weight: 38
+  - category: FatBug
+    group: "高階美食"
+    name: "肥嫩毛毛蟲"
+    scoreLabel: "+20"
+    description: "較少出現，但熱量效益相當理想。"
+    accessibleLabel: "肥嫩毛毛蟲，加二十分"
+    image: "images/Bug2.png"
+    reaction: "肥嫩的個體，熱量效益相當理想。"
+    score: 20
+    weight: 10
+  - category: BlueBerry
+    group: "倍率補給"
+    name: "藍莓"
+    scoreLabel: "倍率 +1"
+    description: "提高後續得分倍率，最高四倍。"
+    accessibleLabel: "藍莓，提高積分倍率"
+    image: "images/Blueberry.png"
+    reaction: "藍莓讓我更有精力，接下來的獵物將提高積分。"
+    score: 0
+    weight: 15
+  - category: LadyBug
+    group: "小型點心"
+    name: "瓢蟲"
+    scoreLabel: "+5"
+    description: "不夠塞牙縫，但不會破壞狩獵節奏。"
+    accessibleLabel: "瓢蟲，加五分"
+    image: "images/Ladybug.png"
+    reaction: "雖然不夠塞牙縫，也算是份小點心。"
+    score: 5
+    weight: 20
+  - category: Mouse
+    group: "生態友軍"
+    name: "友善小老鼠"
+    scoreLabel: "-15／倍率歸零"
+    description: "谷中罕見的友善小動物，請克制本能。"
+    accessibleLabel: "友善小老鼠，請勿攻擊"
+    image: "images/Mouse.png"
+    reaction: "誤傷無辜的小老鼠……這不符合我的優雅風格。"
+    score: -15
+    weight: 10
+  - category: PileOfWood
+    group: "路徑障礙"
+    name: "木柴堆"
+    scoreLabel: "時間 -5 秒"
+    description: "不影響倍率，但會縮短本章獵食時間。"
+    accessibleLabel: "木柴堆，會扣除五秒"
+    image: "images/Pile-of-Wood.png"
+    reaction: "木柴擋住了路，獵食時間被縮短了。"
+    score: 0
     weight: 7
 
-# 依調整後分數由高至低選擇結算評語。
 evaluations:
   - rank: "SSS"
-    minimumScore: 4200
-    logTitle: "完美暴食！爛泥中的頂級獵手"
-    summaryTemplate: "以 {maxCombo} 次最大連擊捕獲 {bugsCaught} 隻異變蟲，累積 {score} 分，並維持精準的生態判讀。"
-    quote: "（冷靜擦拭口器）泥巴仍舊令人不快，但這份精準與熱量收益，足以證明狩獵是最優雅的移動方式。"
-  - rank: "A"
-    minimumScore: 2600
-    logTitle: "高效率的雨後蛋白質收益"
-    summaryTemplate: "捕獲 {bugsCaught} 隻異變蟲，最大連擊達 {maxCombo}，本次總分為 {score}。"
-    quote: "成果符合預期。若再減少無效出手，這片爛泥便更值得忍受。"
-  - rank: "B"
-    minimumScore: 1400
-    logTitle: "穩定的狩獵觀察紀錄"
-    summaryTemplate: "捕獲 {bugsCaught} 隻異變蟲，誤傷 {friendlyHits} 次，危險誤擊 {hazardHits} 次。"
-    quote: "收穫足以維持體力。只要把每一次等待都視為觀察，下一輪便能更接近毫無浪費的獵食。"
-  - rank: "C"
-    minimumScore: 500
-    logTitle: "口器與判斷的校正課"
-    summaryTemplate: "總分 {score}，其中誤傷 {friendlyHits} 次、危險誤擊 {hazardHits} 次，仍有改善空間。"
-    quote: "咬合力不是智慧。氣味、色澤與質地，都值得在出手前再確認一次。"
-  - rank: "D"
+    minimumScore: 100
+    title: "完美熱量吸收"
+    review: "（冷靜地擦了擦口器）雖然腳上沾滿爛泥，但這趟獵食相當有價值。"
+  - rank: "A～B"
+    minimumScore: 50
+    title: "穩定的狩獵收穫"
+    review: "還算可以的收穫。只是有幾個障礙干擾了捕食節奏。"
+  - rank: "C～D"
     minimumScore: -999999
-    logTitle: "泥沼中的生態界線"
-    summaryTemplate: "本次捕獲 {bugsCaught} 隻異變蟲，但衝動明顯干擾了生態判讀。"
-    quote: "（緩慢整理觸鬚）下次，我會先辨認生命的輪廓，再決定是否張開口器。"
+    title: "需要重新校正的判斷"
+    review: "……（沉默地搖了搖觸鬚）太過躁進了。下一次應先辨認輪廓。"
+
+spergerPhrases:
+  - "蛋白質效益符合預期。"
+  - "盲目啃咬是不智之舉！"
+  - "誤傷無辜的小老鼠……這不符合我的優雅風格。"
+  - "這些蟲雖然討厭，但熱量非常可觀。"
+  - "發揮野性直覺！精準狩獵！"
+  - "優質的蛋白質……確實令人愉悅。"
+  - "注意外殼光澤，那是生物學給予的指示。"
+
+lore:
+  heading: "斯柏格．費里尼"
+  lead: "從隱密實驗室逃出的變異美國蟑螂，以冷靜判斷、生物學知識與對優質蛋白質的品味在蟲鳴谷求生。"
+  sections:
+    - key: "basic"
+      title: "基本資料與性格"
+      content: |-
+        姓名：斯柏格．費里尼（Sperger Fellini），偏名斯柏，性別為公，種族是美國蟑螂。
+        外型與普通蟑螂相近，但體型大上數倍。個性隨遇而安、十分冷靜，具備高 EQ，習慣謹慎思考後再做決定。
+    - key: "background"
+      title: "背景故事"
+      content: |-
+        斯柏格原本是隱密實驗室的人道替換實驗對象。實驗使牠獲得意識與自由意志；為追求自由，牠逃離設施並來到蟲鳴谷。
+    - key: "gift"
+      title: "能力：變異體"
+      content: |-
+        表層肌膚具有輕皮甲般的防禦，肢體末端的攀爬爪能適應陡坡並支援飛行。
+        牠對氣味與流體極度敏感，能以口器辨識物質內部狀態；尖銳牙齒兼具撕裂與咀嚼能力。吞食生物或消耗品時，能最大化吸收其效果。
+    - key: "traits"
+      title: "知識與專長"
+      content: |-
+        野性之音使斯柏格能與龍種、野獸及蟲類交流。牠熟悉生物、植物與生態學，也具備烹飪、營養與美食學知識。
+
+treasure:
+  title: "大叔的委託：斯柏格撿金幣"
+  introduction: "有位大叔把五枚金幣掉在廣場的 9 × 19 格地面上。找出全部金幣，協助斯柏格完成這份有點可疑的委託。"
+  rows: 19
+  columns: 9
+  coinCount: 5
+  scorePerCoin: 20
+  phrases:
+    - "大吉大利"
+    - "恭喜發財"
+    - "歲歲平安"
+    - "萬事如意"
+    - "金玉滿堂"

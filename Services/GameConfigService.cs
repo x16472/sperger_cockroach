@@ -1,80 +1,89 @@
-// 匯入遊戲設定模型。
 using sperger_cockroach.Models;
-// 匯入 YAML 反序列化功能。
 using YamlDotNet.Serialization;
-// 匯入 camelCase 命名規則。
 using YamlDotNet.Serialization.NamingConventions;
 
 namespace sperger_cockroach.Services;
 
 /// <summary>
-/// 從網站靜態資產讀取並解析 config.yaml。
+/// 從網站靜態資產讀取、解析並驗證遊戲設定。
 /// </summary>
 public sealed class GameConfigService
 {
-    // 儲存目前網站基底網址的 HTTP 用戶端。
     private readonly HttpClient _http_client;
-    // 儲存支援 camelCase 的 YAML 解析器。
     private readonly IDeserializer _yaml_deserializer;
 
-    /// <summary>
-    /// 建立全域遊戲設定讀取服務。
-    /// </summary>
     public GameConfigService(HttpClient http_client)
     {
-        // 保存由依賴注入提供的 HTTP 用戶端。
         _http_client = http_client;
-        // 建立忽略未知欄位的 YAML 解析器，便於日後擴充設定。
         _yaml_deserializer = new DeserializerBuilder()
-            // 將 YAML camelCase 鍵名對應到 C# PascalCase 屬性。
             .WithNamingConvention(CamelCaseNamingConvention.Instance)
-            // 忽略程式尚未使用的新設定欄位。
             .IgnoreUnmatchedProperties()
-            // 完成解析器建立。
             .Build();
     }
 
-    /// <summary>
-    /// 非同步讀取並驗證 config.yaml。
-    /// </summary>
     public async Task<GameConfig> LoadAsync(CancellationToken cancellation_token = default)
     {
-        // 從網站基底路徑讀取納入版控的 YAML 文字。
         var yaml_text = await _http_client.GetStringAsync("config.yaml", cancellation_token);
-        // 將 YAML 轉換為強型別設定。
         var game_config = _yaml_deserializer.Deserialize<GameConfig>(yaml_text)
-            // 無法產生設定時回報明確錯誤。
             ?? throw new InvalidOperationException("config.yaml 未包含有效的遊戲設定。");
-        // 驗證會影響陣列索引與計時的必要設定。
+
         Validate(game_config);
-        // 回傳可供整個遊戲使用的設定。
         return game_config;
     }
 
-    /// <summary>
-    /// 驗證遊戲執行必要的設定範圍。
-    /// </summary>
-    private static void Validate(GameConfig game_config)
+    public static void Validate(GameConfig game_config)
     {
-        // 遊戲至少需要一個章節。
-        if (game_config.Chapters.Count == 0)
+        if (game_config.Layout.BoardRows != 10 || game_config.Layout.BoardColumns != 10)
         {
-            // 提示內容維護者補上章節。
-            throw new InvalidOperationException("config.yaml 至少需要一個 chapters 項目。");
+            throw new InvalidOperationException("主遊戲盤面必須設定為 10 × 10。");
         }
 
-        // 洞穴數與欄數都必須大於零。
-        if (game_config.Layout.HoleCount <= 0 || game_config.Layout.HoleColumns <= 0)
+        if (game_config.Layout.ChapterDurationSeconds <= 0 || game_config.Layout.HitFeedbackMilliseconds <= 0)
         {
-            // 防止獵場產生無效的 CSS Grid 與隨機索引。
-            throw new InvalidOperationException("config.yaml 的 holeCount 與 holeColumns 必須大於零。");
+            throw new InvalidOperationException("章節秒數與命中回饋時間必須大於零。");
         }
 
-        // 每章秒數與初始體力都必須大於零。
-        if (game_config.Layout.ChapterDurationSeconds <= 0 || game_config.Layout.StartingHealth <= 0)
+        if (game_config.Chapters.Count != 3)
         {
-            // 防止遊戲開始後立即結束。
-            throw new InvalidOperationException("config.yaml 的章節秒數與初始體力必須大於零。");
+            throw new InvalidOperationException("config.yaml 必須包含三個 chapters 項目。");
+        }
+
+        if (game_config.Difficulties.Count != Enum.GetValues<DifficultyLevel>().Length ||
+            game_config.Difficulties.Any(difficulty => difficulty.SpawnIntervalMilliseconds <= 0) ||
+            game_config.Difficulties.Select(difficulty => difficulty.Level).Distinct().Count() != game_config.Difficulties.Count)
+        {
+            throw new InvalidOperationException("config.yaml 必須包含五種不重複且速度有效的難度。");
+        }
+
+        var expected_categories = Enum.GetValues<InsectCategory>();
+        if (game_config.Targets.Count != expected_categories.Length ||
+            game_config.Targets.Select(target => target.Category).Distinct().Count() != expected_categories.Length ||
+            expected_categories.Any(category => game_config.Targets.All(target => target.Category != category)))
+        {
+            throw new InvalidOperationException("config.yaml 必須各自定義六種不重複的標靶。");
+        }
+
+        if (game_config.Targets.Any(target => target.Weight <= 0) || game_config.Targets.Sum(target => target.Weight) != 100)
+        {
+            throw new InvalidOperationException("六種標靶權重必須皆大於零且總和為 100。");
+        }
+
+        if (game_config.Gameplay.TargetScore <= 0 || game_config.Gameplay.MaximumMultiplier < 1 ||
+            game_config.Gameplay.WoodTimePenaltySeconds <= 0)
+        {
+            throw new InvalidOperationException("得分目標、倍率上限與木柴扣時設定必須有效。");
+        }
+
+        if (game_config.Evaluations.Count == 0 || game_config.SpergerPhrases.Count == 0)
+        {
+            throw new InvalidOperationException("至少需要一筆結算評語與斯柏格語錄。");
+        }
+
+        var treasure = game_config.Treasure;
+        if (treasure.Rows <= 0 || treasure.Columns <= 0 || treasure.CoinCount <= 0 ||
+            treasure.CoinCount > treasure.Rows * treasure.Columns || treasure.ScorePerCoin <= 0 || treasure.Phrases.Count == 0)
+        {
+            throw new InvalidOperationException("尋寶遊戲的盤面、金幣與吉祥話設定無效。");
         }
     }
 }

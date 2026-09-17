@@ -13,5 +13,7 @@ builder.RootComponents.Add<App>("#app");
 builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 // 註冊從 config.yaml 讀取全域遊戲內容的服務。
 builder.Services.AddScoped<GameConfigService>();
+// 註冊不依賴畫面的遊戲規則服務。
+builder.Services.AddScoped<GameRulesService>();
 // 啟動 WebAssembly 應用程式。
 await builder.Build().RunAsync();

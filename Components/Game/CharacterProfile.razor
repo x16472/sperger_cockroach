@@ -1,0 +1,52 @@
+<section class="profile-section" id="character" aria-labelledby="character-title">
+    <div class="section-heading">
+        <span>SPECIMEN PROFILE</span>
+        <h2 id="character-title">@Config.Heading</h2>
+        <p>@Config.Lead</p>
+    </div>
+
+    <div class="profile-layout">
+        <div class="profile-tabs" role="tablist" aria-label="角色檔案分類">
+            @foreach (var section in Config.Sections)
+            {
+                <button type="button"
+                        role="tab"
+                        aria-selected="@(_active_key == section.Key)"
+                        class="@(_active_key == section.Key ? "active" : string.Empty)"
+                        @onclick="() => _active_key = section.Key">
+                    @section.Title
+                </button>
+            }
+        </div>
+
+        @if (ActiveSection is not null)
+        {
+            <article role="tabpanel" tabindex="0">
+                <small>FIELD FILE / @ActiveSection.Key.ToUpperInvariant()</small>
+                <h3>@ActiveSection.Title</h3>
+                @foreach (var paragraph in ActiveSection.Content.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    <p>@paragraph</p>
+                }
+            </article>
+        }
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired]
+    public LoreConfig Config { get; set; } = new();
+
+    private string _active_key = string.Empty;
+
+    private LoreSectionConfig? ActiveSection => Config.Sections.FirstOrDefault(section => section.Key == _active_key)
+        ?? Config.Sections.FirstOrDefault();
+
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(_active_key) && Config.Sections.Count > 0)
+        {
+            _active_key = Config.Sections[0].Key;
+        }
+    }
+}

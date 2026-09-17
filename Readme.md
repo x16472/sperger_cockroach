@@ -1,23 +1,28 @@
 # sperger_cockroach
 
-《蟲鳴谷：泥沼暴食狩獵》是以 .NET 10 獨立式 Blazor WebAssembly 製作的互動式文字冒險與打地鼠遊戲。
+《蟲鳴谷：泥沼暴食狩獵》是以 .NET 10 獨立式 Blazor WebAssembly 製作的響應式打地鼠遊戲。主遊戲採 10 × 10 泥沼棋盤、五種難度、三章各 20 秒，另包含角色檔案、尋寶支線與瀏覽器本機成績。
 
-## 內容設定
+## 遊戲規則
 
-網站標題、開場介紹、章節劇情、獵場布局、得分規則、標靶權重與結算評語皆集中於 `wwwroot/config.yaml`，修改後會隨 Git 一併版控。
+- 普通毛毛蟲 +10、肥嫩毛毛蟲 +20、瓢蟲 +5。
+- 藍莓提高倍率，最高 ×4；小老鼠 -15 並清除倍率；木柴扣除本章 5 秒。
+- 每章結束達 100 分即結算，否則最多進行三章。
+- 成績評級為 SSS、A～B、C～D。
 
-## 本機執行
+所有內容、權重、速度與文字均集中於 `wwwroot/config.yaml`。圖片放在 `wwwroot/images`，音效由 Web Audio 即時合成。
 
-使用 Visual Studio Code 終端機執行：
+## 本機執行與測試
+
+使用 Visual Studio Code 終端機：
 
 ```powershell
 dotnet run
+dotnet test tests/sperger_cockroach.Tests/sperger_cockroach.Tests.csproj
+dotnet publish --configuration Release
 ```
 
-預設網址為 `http://localhost:5044`。
+預設網址為 `http://localhost:5044`。主遊戲成績只在玩家選擇保存後寫入該瀏覽器的 `localStorage`，最多 50 筆，不會上傳至伺服器。
 
 ## GitHub Pages
 
-推送至 `main` 分支後，`.github/workflows/deploy-pages.yaml` 會發布 `bin/Release` 產生的靜態 WebAssembly 網站。請在 GitHub 儲存庫的 Pages 設定中將來源選為 GitHub Actions。
-
-玩家選擇記錄分數時，資料只保存在該瀏覽器的 `localStorage`，不會上傳至伺服器。
+推送至 `main` 分支後，`.github/workflows/deploy-pages.yaml` 會發布靜態 WebAssembly 網站。工作流程會依儲存庫名稱調整 `<base href>`，建立 SPA 用的 `404.html`，並加入 `.nojekyll`。

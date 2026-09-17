@@ -1,0 +1,47 @@
+<section class="history-section" id="records" aria-labelledby="history-title">
+    <div>
+        <span>LOCAL FIELD LOG</span>
+        <h2 id="history-title">最近狩獵紀錄</h2>
+        <p>資料只保存在這個瀏覽器，最多保存 50 筆；此處顯示最近 10 筆。</p>
+    </div>
+
+    @if (Records.Count == 0)
+    {
+        <p class="empty-state">尚未保存任何狩獵紀錄。</p>
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>日期</th>
+                        <th>難度</th>
+                        <th>分數</th>
+                        <th>評級</th>
+                        <th>章節</th>
+                        <th>有效時間</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var record in Records.Take(10))
+                    {
+                        <tr>
+                            <td>@record.EndedAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</td>
+                            <td>@record.Difficulty</td>
+                            <td>@record.Score</td>
+                            <td>@record.Rank</td>
+                            <td>@record.ChapterReached / 3</td>
+                            <td>@record.ActiveSeconds.ToString("F1") 秒</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter]
+    public IReadOnlyList<ScoreRecord> Records { get; set; } = [];
+}

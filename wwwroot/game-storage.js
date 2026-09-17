@@ -1,40 +1,69 @@
-// 將遊戲本機儲存功能放在固定命名空間下。
+// 將本機成績與 Web Audio 功能收斂在固定命名空間。
 window.spergerGame = {
-    // 將新分數附加到此瀏覽器的歷史紀錄。
-    saveScore: function (scoreRecord) {
-        // 使用專案專屬鍵名避免與其他網站資料衝突。
-        const storageKey = "sperger_cockroach.scores";
-        // 讀取既有 JSON，沒有資料時使用空陣列。
-        const existingJson = window.localStorage.getItem(storageKey) || "[]";
-        // 解析既有資料並在格式異常時回復為空陣列。
-        let scoreRecords;
-        // 捕捉使用者曾手動修改 localStorage 造成的格式錯誤。
+    // 讀取成績時容忍使用者手動修改造成的格式錯誤。
+    getScores: function () {
         try {
-            // 將 JSON 文字還原為陣列。
-            scoreRecords = JSON.parse(existingJson);
+            const value = JSON.parse(window.localStorage.getItem("sperger_cockroach.scores") || "[]");
+            return Array.isArray(value) ? value : [];
         } catch {
-            // 無效資料不阻止本次分數記錄。
-            scoreRecords = [];
+            return [];
         }
-        // 將最新結果放到陣列開頭。
+    },
+
+    // 將最新成績放在最前方，並限制最多五十筆。
+    saveScore: function (scoreRecord) {
+        const scoreRecords = window.spergerGame.getScores();
         scoreRecords.unshift(scoreRecord);
-        // 僅保留最近五十筆以控制瀏覽器儲存量。
-        const recentRecords = scoreRecords.slice(0, 50);
-        // 將結果寫回此裝置，不進行任何網路傳輸。
-        window.localStorage.setItem(storageKey, JSON.stringify(recentRecords));
+        window.localStorage.setItem("sperger_cockroach.scores", JSON.stringify(scoreRecords.slice(0, 50)));
+    },
+
+    // 依互動種類合成短促雙音，避免依賴外部音訊檔案。
+    playInteractionSound: function (category) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) {
+            return;
+        }
+
+        window.spergerGame.audioContext ??= new AudioContext();
+        const context = window.spergerGame.audioContext;
+        if (context.state === "suspended") {
+            context.resume();
+        }
+
+        const tones = {
+            BlueBerry: [880, 1180],
+            Mouse: [360, 240],
+            PileOfWood: [360, 240],
+            Miss: [190, 150],
+            Coin: [920, 1320]
+        };
+        const [firstFrequency, secondFrequency] = tones[category] || [700, 950];
+        const startAt = context.currentTime;
+
+        const playTone = function (frequency, startsAt, duration) {
+            const oscillator = context.createOscillator();
+            const gain = context.createGain();
+            oscillator.type = "sine";
+            oscillator.frequency.value = frequency;
+            gain.gain.setValueAtTime(0.0001, startsAt);
+            gain.gain.exponentialRampToValueAtTime(0.12, startsAt + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, startsAt + duration);
+            oscillator.connect(gain);
+            gain.connect(context.destination);
+            oscillator.start(startsAt);
+            oscillator.stop(startsAt + duration);
+        };
+
+        playTone(firstFrequency, startAt, 0.07);
+        playTone(secondFrequency, startAt + 0.11, 0.09);
     }
 };
 
-// 文件完成後連接全域錯誤列的關閉按鈕。
 document.addEventListener("DOMContentLoaded", function () {
-    // 取得 Blazor 錯誤列與關閉按鈕。
     const errorUi = document.getElementById("blazor-error-ui");
     const dismissButton = errorUi ? errorUi.querySelector(".dismiss") : null;
-    // 只有兩個節點都存在時才註冊事件。
     if (errorUi && dismissButton) {
-        // 點擊後只隱藏錯誤列，不修改遊戲資料。
         dismissButton.addEventListener("click", function () {
-            // 將錯誤列恢復為隱藏狀態。
             errorUi.style.display = "none";
         });
     }

@@ -1,0 +1,82 @@
+.profile-section {
+    background: #e4dcc7;
+    padding: clamp(48px, 7vw, 96px) clamp(20px, 5vw, 76px);
+}
+
+.section-heading {
+    margin: 0 auto 32px;
+    max-width: 1180px;
+}
+
+.section-heading > span,
+article small {
+    color: #52724a;
+    font-family: Consolas, monospace;
+    font-size: .68rem;
+    letter-spacing: .18em;
+}
+
+.section-heading h2 {
+    font-family: Georgia, "Noto Serif TC", serif;
+    font-size: clamp(2.2rem, 5vw, 4.5rem);
+    font-weight: 400;
+    margin: 10px 0;
+}
+
+.section-heading p {
+    line-height: 1.8;
+    max-width: 760px;
+}
+
+.profile-layout {
+    display: grid;
+    gap: 1px;
+    grid-template-columns: minmax(210px, .65fr) 2fr;
+    margin: 0 auto;
+    max-width: 1180px;
+}
+
+.profile-tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.profile-tabs button {
+    background: #173e2a;
+    border: 0;
+    color: #f4f0e4;
+    cursor: pointer;
+    padding: 18px 20px;
+    text-align: left;
+}
+
+.profile-tabs button.active {
+    background: #cfec65;
+    color: #10231a;
+    font-weight: 850;
+}
+
+article {
+    background: #f4f0e4;
+    min-height: 300px;
+    padding: clamp(28px, 5vw, 56px);
+}
+
+article h3 {
+    font-family: Georgia, "Noto Serif TC", serif;
+    font-size: 2rem;
+    font-weight: 400;
+    margin: 14px 0 24px;
+}
+
+article p {
+    line-height: 1.9;
+    white-space: pre-line;
+}
+
+@media (max-width: 680px) {
+    .profile-layout { grid-template-columns: 1fr; }
+    .profile-tabs { display: grid; grid-template-columns: repeat(2, 1fr); }
+    .profile-tabs button { padding: 14px 12px; }
+}

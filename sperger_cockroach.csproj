@@ -22,4 +22,9 @@
     <PackageReference Include="YamlDotNet" Version="18.1.0" />
   </ItemGroup>
 
+  <!-- 測試專案位於儲存庫子目錄，不納入 WebAssembly 主程式編譯。 -->
+  <ItemGroup>
+    <Compile Remove="tests/**/*.cs" />
+  </ItemGroup>
+
 </Project>
