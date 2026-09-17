@@ -257,7 +257,7 @@ else if (_config is not null)
                                     </dl>
                                     <button class="primary-action full" @onclick="ContinueExpedition"><span>下一局，累積積分</span><b>↻</b></button>
                                     <button class="secondary-action" @onclick="SaveLocallyAndExit" disabled="@_is_saved">@(_is_saved ?
-                                                                                                                                     "已記錄於此裝置" : "記錄分數並離場")</button>
+                                                                                                                                                                                                                                                                                                                                             "已記錄於此裝置" : "記錄分數並離場")</button>
                                         @if (!string.IsNullOrWhiteSpace(_save_message))
                                         {
                                             <p class="save-message success" role="status">@_save_message</p>
@@ -719,8 +719,7 @@ Math.Max(0, Config.Layout.StartingHealth - _health)));
                 Rank = "B",
                 LogTitle = "雨後狩獵觀察紀錄",
                 SummaryTemplate = "捕獲 {bugsCaught} 隻異變蟲。",
-                Quote =
-"保持觀察，下一輪會更精準。"
+                Quote = "保持觀察，下一輪會更精準。"
             };
         // 置換 YAML 文字範本中的統計標記。
         var summary_text = evaluation_config.SummaryTemplate
