@@ -1,28 +1,96 @@
 .treasure-section {
-    background: #10231a;
-    color: #f4f0e4;
-    display: grid;
-    gap: clamp(28px, 5vw, 64px);
-    grid-template-columns: minmax(260px, .75fr) minmax(320px, 1.25fr);
-    padding: clamp(48px, 7vw, 96px) clamp(20px, 5vw, 76px);
+  background: #10231a;
+  color: #f4f0e4;
+  display: grid;
+  gap: clamp(28px, 5vw, 64px);
+  grid-template-columns: minmax(260px, 0.75fr) minmax(320px, 1.25fr);
+  padding: clamp(48px, 7vw, 96px) clamp(20px, 5vw, 76px);
 }
 
-.treasure-copy { align-self: start; position: sticky; top: 20px; }
-.treasure-copy > span { color: #cfec65; font-family: Consolas, monospace; font-size: .68rem; letter-spacing: .18em; }
-.treasure-copy h2 { font-family: Georgia, "Noto Serif TC", serif; font-size: clamp(2.3rem, 5vw, 4.6rem); font-weight: 400; line-height: 1.05; margin: 12px 0 24px; }
-.treasure-copy p { line-height: 1.8; }
-.treasure-copy dl { border-top: 1px solid rgba(244, 240, 228, .2); margin: 28px 0; }
-.treasure-copy dl div { align-items: center; border-bottom: 1px solid rgba(244, 240, 228, .2); display: flex; justify-content: space-between; padding: 12px 0; }
-.treasure-copy dd { color: #cfec65; font-family: Georgia, serif; font-size: 1.35rem; margin: 0; }
-.treasure-action { background: #cfec65; border: 0; color: #10231a; cursor: pointer; font-weight: 900; padding: 15px 22px; }
-.treasure-status { border-left: 2px solid #ef7b45; padding-left: 14px; }
-.treasure-board { align-self: start; background: #52724a; display: grid; gap: 2px; padding: 8px; }
-.treasure-board button { aspect-ratio: 1; background: #ded6bf; border: 0; color: #10231a; cursor: pointer; font-size: clamp(.45rem, 1.5vw, .9rem); font-weight: 900; min-width: 0; padding: 0; }
-.treasure-board button:not(:disabled):hover { background: #cfec65; }
-.treasure-board button.empty { background: rgba(244, 240, 228, .35); }
-.treasure-board button.coin { background: #f4c95d; box-shadow: inset 0 0 0 2px #7b5311; }
+.treasure-copy {
+  align-self: start;
+  position: sticky;
+  top: 20px;
+}
+.treasure-copy > span {
+  color: #cfec65;
+  font-family: Consolas, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+}
+.treasure-copy h2 {
+  font-family: Georgia, "Noto Serif TC", serif;
+  font-size: clamp(2.3rem, 5vw, 4.6rem);
+  font-weight: 400;
+  line-height: 1.05;
+  margin: 12px 0 24px;
+}
+.treasure-copy p {
+  line-height: 1.8;
+}
+.treasure-copy dl {
+  border-top: 1px solid rgba(244, 240, 228, 0.2);
+  margin: 28px 0;
+}
+.treasure-copy dl div {
+  align-items: center;
+  border-bottom: 1px solid rgba(244, 240, 228, 0.2);
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+}
+.treasure-copy dd {
+  color: #cfec65;
+  font-family: Georgia, serif;
+  font-size: 1.35rem;
+  margin: 0;
+}
+.treasure-action {
+  background: #cfec65;
+  border: 0;
+  color: #10231a;
+  cursor: pointer;
+  font-weight: 900;
+  padding: 15px 22px;
+}
+.treasure-status {
+  border-left: 2px solid #ef7b45;
+  padding-left: 14px;
+}
+.treasure-board {
+  align-self: start;
+  background: #52724a;
+  display: grid;
+  gap: 2px;
+  padding: 8px;
+}
+.treasure-board button {
+  aspect-ratio: 1;
+  background: #ded6bf;
+  border: 0;
+  color: #10231a;
+  cursor: pointer;
+  font-size: clamp(0.45rem, 1.5vw, 0.9rem);
+  font-weight: 900;
+  min-width: 0;
+  padding: 0;
+}
+.treasure-board button:not(:disabled):hover {
+  background: #cfec65;
+}
+.treasure-board button.empty {
+  background: rgba(244, 240, 228, 0.35);
+}
+.treasure-board button.coin {
+  background: #f4c95d;
+  box-shadow: inset 0 0 0 2px #7b5311;
+}
 
 @media (max-width: 820px) {
-    .treasure-section { grid-template-columns: 1fr; }
-    .treasure-copy { position: static; }
+  .treasure-section {
+    grid-template-columns: 1fr;
+  }
+  .treasure-copy {
+    position: static;
+  }
 }

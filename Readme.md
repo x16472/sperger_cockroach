@@ -11,7 +11,7 @@
 
 所有內容、權重、速度與文字均集中於 `wwwroot/config.yaml`。圖片放在 `wwwroot/images`，音效由 Web Audio 即時合成。
 
-## 本機執行與測試
+## 本機執行、偵錯與測試
 
 使用 Visual Studio Code 終端機：
 
@@ -22,6 +22,15 @@ dotnet publish --configuration Release
 ```
 
 預設網址為 `http://localhost:5044`。主遊戲成績只在玩家選擇保存後寫入該瀏覽器的 `localStorage`，最多 50 筆，不會上傳至伺服器。
+
+### Visual Studio Code 偵錯
+
+請先安裝 Microsoft C# Dev Kit。專案已提供 `.vscode/launch.json`，請在「執行與偵錯」選擇下列設定：
+
+- `Blazor WASM：啟動並偵錯`：尚未啟動站台時使用，由 VS Code 啟動專案並開啟 Edge 偵錯視窗。
+- `Blazor WASM：附加至現有站台`：已透過 `dotnet run` 或 `start.bat` 啟動 `http://localhost:5044` 時使用，避免再次啟動造成連接埠占用。
+
+Blazor WebAssembly 的偵錯代理在頁面啟動後才會就緒，因此 `Program.cs` 與首次載入頁面的 `OnInitialized{Async}` 中斷點不一定會命中。偵錯初始化流程時，先啟動偵錯工作階段，再重新載入頁面；互動事件與後續元件生命週期可直接設定中斷點。
 
 ## GitHub Pages
 

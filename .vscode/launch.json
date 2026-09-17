@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Blazor WASM：啟動並偵錯",
+      "type": "chrome",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "url": "http://localhost:5044",
+      "timeout": 60000
+    },
+    {
+      "name": "Blazor WASM：附加至現有站台",
+      "type": "chrome",
+      "request": "attach",
+      "url": "http://localhost:5044",
+      "timeout": 60000
+    }
+  ]
+}

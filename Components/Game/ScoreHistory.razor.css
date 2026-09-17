@@ -1,26 +1,47 @@
 .history-section {
-    margin: 0 auto;
-    max-width: 1180px;
-    padding: clamp(48px, 7vw, 86px) clamp(20px, 5vw, 76px);
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: clamp(48px, 7vw, 86px) clamp(20px, 5vw, 76px);
 }
 
 .history-section span {
-    color: #52724a;
-    font-family: Consolas, monospace;
-    font-size: .68rem;
-    letter-spacing: .18em;
+  color: #52724a;
+  font-family: Consolas, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
 }
 
 .history-section h2 {
-    font-family: Georgia, "Noto Serif TC", serif;
-    font-size: clamp(2rem, 4vw, 3.5rem);
-    font-weight: 400;
-    margin: 8px 0;
+  font-family: Georgia, "Noto Serif TC", serif;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 400;
+  margin: 8px 0;
 }
 
-.history-section p { line-height: 1.7; }
-.empty-state { border: 1px dashed rgba(16, 35, 26, .35); padding: 24px; }
-.table-wrap { overflow-x: auto; }
-table { border-collapse: collapse; min-width: 720px; width: 100%; }
-th, td { border-bottom: 1px solid rgba(16, 35, 26, .18); padding: 14px 12px; text-align: left; }
-th { background: #173e2a; color: #f4f0e4; font-size: .72rem; letter-spacing: .08em; }
+.history-section p {
+  line-height: 1.7;
+}
+.empty-state {
+  border: 1px dashed rgba(16, 35, 26, 0.35);
+  padding: 24px;
+}
+.table-wrap {
+  overflow-x: auto;
+}
+table {
+  border-collapse: collapse;
+  min-width: 720px;
+  width: 100%;
+}
+th,
+td {
+  border-bottom: 1px solid rgba(16, 35, 26, 0.18);
+  padding: 14px 12px;
+  text-align: left;
+}
+th {
+  background: #173e2a;
+  color: #f4f0e4;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
