@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "Blazor WebAssembly: 啟動站台並偵錯",
-      "type": "blazorwasm",
+      "type": "chrome",
       "request": "launch",
       "url": "http://localhost:5044",
       "webRoot": "${workspaceFolder}",
@@ -12,7 +12,7 @@
     },
     {
       "name": "Blazor WebAssembly: 偵錯已啟動站台",
-      "type": "blazorwasm",
+      "type": "chrome",
       "request": "launch",
       "url": "http://localhost:5044",
       "webRoot": "${workspaceFolder}",

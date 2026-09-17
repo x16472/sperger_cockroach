@@ -6,6 +6,7 @@
   padding: clamp(24px, 4vw, 56px) clamp(16px, 4vw, 48px);
   width: 100%;
 }
+
 .hunt-section *,
 .hunt-section *::before,
 .hunt-section *::after {
@@ -17,31 +18,37 @@
   max-width: 1320px;
   width: 100%;
 }
-.hunt-heading > span,
-.intermission-card > span,
-.result-card > div > span {
+
+.hunt-heading>span,
+.intermission-card>span,
+.result-card>div>span {
   color: #52724a;
   font-family: Consolas, monospace;
   font-size: 0.68rem;
   letter-spacing: 0.18em;
 }
+
 .hunt-heading h2 {
   font-family: Georgia, "Noto Serif TC", serif;
   font-size: clamp(2.4rem, 5vw, 4.8rem);
   font-weight: 400;
   margin: 8px 0;
 }
+
 .hunt-heading p {
   line-height: 1.8;
   max-width: 780px;
 }
+
 .hunt-section[data-phase="Playing"] {
   min-height: 0;
   padding-block: 12px;
 }
+
 .hunt-section[data-phase="Playing"] .hunt-heading {
   display: none;
 }
+
 .ready-layout {
   display: grid;
   gap: 20px;
@@ -50,6 +57,7 @@
   max-width: 1180px;
   width: 100%;
 }
+
 .difficulty-card {
   background: #173e2a;
   color: #f4f0e4;
@@ -58,15 +66,18 @@
   gap: 16px;
   padding: 30px;
 }
+
 .difficulty-card label {
   font-weight: 850;
 }
+
 .difficulty-card select {
   background: #f4f0e4;
   border: 0;
   color: #10231a;
   padding: 13px;
 }
+
 .difficulty-card button,
 .intermission-card button {
   background: #cfec65;
@@ -76,15 +87,18 @@
   font-weight: 900;
   padding: 15px;
 }
+
 .difficulty-card button:disabled {
   cursor: not-allowed;
   opacity: 0.45;
 }
+
 .chapter-list {
   display: grid;
   gap: 1px;
   grid-template-columns: repeat(3, 1fr);
 }
+
 .chapter-list article {
   background: #ded6bf;
   contain: layout paint style;
@@ -93,15 +107,18 @@
   min-height: 260px;
   padding: 24px;
 }
+
 .chapter-list small {
   color: #52724a;
   font-family: Consolas, monospace;
 }
+
 .chapter-list h3 {
   font-family: Georgia, "Noto Serif TC", serif;
   font-size: 1.45rem;
   font-weight: 400;
 }
+
 .chapter-list p {
   font-size: 0.86rem;
   line-height: 1.7;
@@ -116,6 +133,7 @@
   max-width: 1320px;
   width: 100%;
 }
+
 .game-topline {
   align-items: center;
   display: flex;
@@ -125,48 +143,89 @@
   min-height: 34px;
   padding-inline: 8px;
 }
+
 .game-topline div small,
 .game-topline div strong {
   display: block;
 }
+
 .game-topline div small {
   font-size: 0.62rem;
   opacity: 0.6;
 }
+
 .game-topline button {
-  background: transparent;
-  border: 1px solid #10231a;
+  background: rgba(16, 35, 26, 0.4);
+  /* 基於你的顏色，改為半透明暗綠襯底 */
+  border: 1px solid #204634;
+  /* 稍微提高邊框亮度，讓線條更精緻 */
+  color: #a3c2b2;
+  /* 柔和的灰綠色文字，不刺眼 */
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  /* 微調字距提升質感 */
+  border-radius: 4px;
+  /* 微圓角，讓邊框更精美 */
   cursor: pointer;
   margin-left: auto;
   padding: 7px 12px;
+  transition: all 0.2s ease-in-out;
+  /* 讓滑鼠移入移出有平滑的過渡感 */
 }
+
+/* 滑鼠移上去時的效果（Hover） */
+.game-topline button:hover {
+  background: #1c3d2e;
+  /* 亮一點的深綠色 */
+  border-color: #387a5b;
+  /* 邊框發亮 */
+  color: #ffffff;
+  /* 文字變白，提示可點擊 */
+  box-shadow: 0 0 8px rgba(56, 122, 91, 0.4);
+  /* 微弱的綠色魔法/科技微光 */
+}
+
+/* 按鈕點擊當下的效果（Active） */
+.game-topline button:active {
+  transform: scale(0.96);
+  /* 點擊時微幅縮小，增加按壓回饋感 */
+  background: #10231a;
+}
+
 .scoreboard {
   background: #10231a;
   color: #f4f0e4;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
 }
+
 .scoreboard div {
   border-right: 1px solid rgba(244, 240, 228, 0.18);
   padding: 10px 16px;
 }
+
 .scoreboard div:last-child {
   border-right: 0;
 }
+
 .scoreboard small,
 .scoreboard strong {
   display: block;
 }
+
 .scoreboard small {
   font-size: 0.62rem;
   opacity: 0.62;
 }
+
 .scoreboard strong {
   color: #cfec65;
   font-family: Georgia, serif;
   font-size: clamp(1rem, 2vw, 1.55rem);
   margin-top: 3px;
 }
+
 .play-layout {
   align-items: stretch;
   display: grid;
@@ -174,6 +233,7 @@
   grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
   margin-top: 10px;
 }
+
 .hunting-board {
   aspect-ratio: 1;
   background: url("images/BackGround.jpg") center / cover;
@@ -191,9 +251,11 @@
   position: relative;
   width: 100%;
 }
+
 .hunt-section[data-phase="Playing"] .hunting-board {
   max-width: min(760px, calc(100dvh - 17rem));
 }
+
 .hunting-board::before {
   background: rgba(16, 35, 26, 0.18);
   content: "";
@@ -201,6 +263,7 @@
   pointer-events: none;
   position: absolute;
 }
+
 .hunting-board button {
   aspect-ratio: 1;
   background: rgba(244, 240, 228, 0.05);
@@ -211,17 +274,21 @@
   padding: 0;
   position: relative;
 }
+
 .hunting-board button:hover {
   background: rgba(207, 236, 101, 0.16);
 }
+
 .hunting-board button.occupied {
   background: rgba(244, 240, 228, 0.38);
   box-shadow: inset 0 0 0 2px #cfec65;
 }
+
 .hunting-board button.hit-feedback {
   animation: hit-flash 300ms ease;
   background: rgba(207, 236, 101, 0.6);
 }
+
 .hunting-board img {
   display: block;
   height: 95%;
@@ -231,6 +298,7 @@
   user-select: none;
   width: 95%;
 }
+
 .hunt-console {
   background: #173e2a;
   color: #f4f0e4;
@@ -240,24 +308,28 @@
   overflow: hidden;
   padding: clamp(22px, 3vw, 36px);
 }
-.hunt-console > small {
+
+.hunt-console>small {
   color: #cfec65;
   font-family: Consolas, monospace;
   font-size: 0.65rem;
   letter-spacing: 0.13em;
 }
+
 .hunt-console h3 {
   font-family: Georgia, "Noto Serif TC", serif;
   font-size: 1.7rem;
   font-weight: 400;
   margin: 10px 0;
 }
+
 .hunt-console blockquote {
   border-left: 2px solid #ef7b45;
   line-height: 1.7;
   margin: 20px 0;
   padding-left: 14px;
 }
+
 .target-preview {
   align-items: center;
   background: #f4f0e4;
@@ -266,18 +338,22 @@
   gap: 12px;
   padding: 10px;
 }
+
 .target-preview img {
   height: 62px;
   object-fit: contain;
   width: 62px;
 }
+
 .target-preview span,
 .target-preview b {
   display: block;
 }
+
 .target-preview span {
   font-size: 0.75rem;
 }
+
 .hunt-console ol {
   flex: 1;
   font-size: 0.72rem;
@@ -287,10 +363,12 @@
   overflow: auto;
   padding-left: 20px;
 }
+
 .hunt-console li {
   border-bottom: 1px solid rgba(244, 240, 228, 0.15);
   padding: 8px 0;
 }
+
 .live-status {
   border-bottom: 1px solid rgba(16, 35, 26, 0.2);
   margin-bottom: 0;
@@ -304,35 +382,43 @@
   max-width: 900px;
   padding: clamp(36px, 6vw, 72px);
 }
-.intermission-card > span {
+
+.intermission-card>span {
   color: #cfec65;
 }
+
 .intermission-card h2 {
   font-family: Georgia, "Noto Serif TC", serif;
   font-size: clamp(2rem, 4vw, 3.5rem);
   font-weight: 400;
 }
+
 .intermission-card p,
 .intermission-card blockquote {
   line-height: 1.8;
 }
+
 .intermission-card blockquote {
   border-left: 2px solid #ef7b45;
   margin: 24px 0;
   padding-left: 16px;
 }
+
 .intermission-card dl {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
 }
+
 .intermission-card dl div {
   border: 1px solid rgba(244, 240, 228, 0.18);
   padding: 14px;
 }
+
 .intermission-card dt {
   font-size: 0.65rem;
   opacity: 0.62;
 }
+
 .intermission-card dd {
   color: #cfec65;
   font-family: Georgia, serif;
@@ -348,6 +434,7 @@
   max-width: 1180px;
   width: 100%;
 }
+
 .result-card {
   align-items: center;
   background: #10231a;
@@ -358,6 +445,7 @@
   min-height: 470px;
   padding: clamp(32px, 5vw, 64px);
 }
+
 .rank-seal {
   align-items: center;
   border: 2px solid #cfec65;
@@ -369,30 +457,36 @@
   transform: rotate(-6deg);
   width: 160px;
 }
+
 .rank-seal strong {
   color: #cfec65;
   font-family: Georgia, serif;
   font-size: 3rem;
 }
+
 .result-card h2 {
   font-family: Georgia, "Noto Serif TC", serif;
   font-size: clamp(2rem, 4vw, 3.4rem);
   font-weight: 400;
 }
+
 .result-card blockquote {
   border-left: 2px solid #ef7b45;
   line-height: 1.8;
   padding-left: 16px;
 }
+
 .result-details {
   background: #ded6bf;
   padding: 30px;
 }
+
 .result-details h3 {
   font-family: Georgia, "Noto Serif TC", serif;
   font-size: 1.8rem;
   font-weight: 400;
 }
+
 .result-details dl div {
   align-items: center;
   border-bottom: 1px solid rgba(16, 35, 26, 0.18);
@@ -400,9 +494,11 @@
   justify-content: space-between;
   padding: 10px 0;
 }
+
 .result-details dd {
   margin: 0;
 }
+
 .result-details button {
   background: transparent;
   border: 1px solid #10231a;
@@ -411,10 +507,12 @@
   padding: 12px;
   width: 100%;
 }
+
 .result-details button.primary {
   background: #cfec65;
   font-weight: 900;
 }
+
 .result-details button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
@@ -428,17 +526,21 @@
 }
 
 @media (max-width: 900px) {
+
   .ready-layout,
   .play-layout,
   .result-layout {
     grid-template-columns: 1fr;
   }
+
   .chapter-list {
     grid-template-columns: 1fr;
   }
+
   .chapter-list article {
     min-height: 0;
   }
+
   .hunt-console {
     justify-self: center;
     max-width: 680px;
@@ -446,13 +548,16 @@
     overflow: visible;
     width: 100%;
   }
+
   .hunt-console ol {
     max-height: 200px;
   }
+
   .hunting-board {
     justify-self: center;
     max-width: 680px;
   }
+
   .hunt-section[data-phase="Playing"] .hunting-board {
     max-width: min(680px, 100%);
   }
@@ -462,15 +567,19 @@
   .hunt-section {
     padding-block: 18px;
   }
+
   .hunt-heading {
     margin-bottom: 14px;
   }
+
   .hunt-heading h2 {
     font-size: clamp(1.9rem, 3vw, 3rem);
   }
+
   .hunt-heading p {
     margin-bottom: 0;
   }
+
   .hunting-board {
     max-width: min(100%, calc(100dvh - 18rem));
   }
@@ -480,45 +589,57 @@
   .hunt-section {
     padding: 20px 8px 28px;
   }
+
   .hunt-heading,
   .ready-layout {
     padding-left: 10px;
     padding-right: 10px;
   }
+
   .game-topline {
     flex-wrap: wrap;
     gap: 12px 20px;
     padding: 0 6px;
   }
+
   .hunt-section[data-phase="Playing"] {
     padding-top: 10px;
   }
+
   .scoreboard {
     grid-template-columns: repeat(2, 1fr);
   }
+
   .scoreboard div:nth-child(2) {
     border-right: 0;
   }
+
   .scoreboard div:nth-child(-n + 2) {
     border-bottom: 1px solid rgba(244, 240, 228, 0.18);
   }
+
   .scoreboard div {
     padding: 12px 10px;
   }
+
   .hunting-board {
     gap: 0;
     padding: 3px;
   }
+
   .hunting-board button {
     border-color: rgba(244, 240, 228, 0.12);
   }
+
   .result-card {
     grid-template-columns: 1fr;
   }
+
   .rank-seal {
     height: 120px;
     width: 120px;
   }
+
   .intermission-card dl {
     grid-template-columns: 1fr;
   }
