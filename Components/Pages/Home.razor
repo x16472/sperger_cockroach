@@ -1,13 +1,15 @@
 @page "/"
+@implements IDisposable
 @inject GameConfigService ConfigService
 @inject IJSRuntime JsRuntime
+@inject NavigationManager Navigation
 
 <PageTitle>@(_config?.Site.Title ?? "Sperger Cockroach")</PageTitle>
 
 @if (_config is null && string.IsNullOrWhiteSpace(_config_error))
 {
     <main class="config-state" aria-live="polite">
-        <span class="brand-mark" aria-hidden="true">蟲</span>
+        <span class="brand-mark" aria-hidden="true">⌂</span>
         <p>正在展開蟲鳴谷生態紀錄……</p>
     </main>
 }
@@ -23,61 +25,83 @@ else if (_config is not null)
 {
     <main class="game-shell">
         <header class="game-header">
-            <a class="brand" href="#top" aria-label="返回頁首">
-                <span class="brand-mark" aria-hidden="true">蟲</span>
+            <a class="brand" href="#top" @onclick='() => SelectTab("home")' aria-label="返回頁首">
+                <span class="brand-mark" aria-hidden="true">⌂</span>
                 <span><small>@_config.Site.Subtitle</small><strong>@_config.Site.Brand</strong></span>
             </a>
             <nav aria-label="主要導覽">
-                <a href="#guide">獵物圖鑑</a>
-                <a href="#hunt">主遊戲</a>
-                <a href="#character">角色檔案</a>
-                <a href="#treasure">尋寶</a>
-                <a href="#records">紀錄</a>
+                <a href="#guide" class='@GetNavClass("guide")' aria-current='@GetAriaCurrent(tab: "guide")' @onclick='() => SelectTab("guide")'>獵物圖鑑</a>
+                <a href="#hunt" class='@GetNavClass("hunt")' aria-current='@GetAriaCurrent(tab: "hunt")' @onclick='() => SelectTab("hunt")'>主遊戲</a>
+                <a href="#character" class='@GetNavClass("character")' aria-current='@GetAriaCurrent(tab: "character")' @onclick='() => SelectTab("character")'>角色檔案</a>
+                <a href="#treasure" class='@GetNavClass("treasure")' aria-current='@GetAriaCurrent(tab: "treasure")' @onclick='() => SelectTab("treasure")'>尋寶</a>
+                <a href="#records" class='@GetNavClass("records")' aria-current='@GetAriaCurrent(tab: "records")' @onclick='() => SelectTab("records")'>紀錄</a>
             </nav>
         </header>
 
-        <section class="intro-stage" id="top">
-            <div class="intro-copy">
-                <span class="eyebrow">SPERGER'S FIELD LOG · 001</span>
-                <p class="chapter-kicker">@_config.Intro.Kicker</p>
-                <h1>@_config.Intro.Headline<br /><em>@_config.Intro.HeadlineAccent</em></h1>
-                <p class="lead">@_config.Intro.Lead</p>
-                <blockquote>
-                    「@_config.Intro.Quote」
-                    <cite>— @_config.Intro.QuoteBy</cite>
-                </blockquote>
-                <a class="primary-action" href="#hunt">@_config.Intro.StartButton <b aria-hidden="true">↘</b></a>
-                <p class="micro-note">10 × 10 泥沼 · 3 章 · 每章 @_config.Layout.ChapterDurationSeconds 秒 · 支援滑鼠、觸控與鍵盤</p>
-            </div>
-            <div class="hero-art" role="img" aria-label="雨後蟲鳴谷的泥沼與巨木獵場">
-                <span>FIELD SITE 07<br /><b>INSECT VALLEY</b></span>
-            </div>
-        </section>
+        @switch (currentTab)
+        {
+            case "home":
+                <section class="intro-stage" id="top">
+                    <div class="intro-copy">
+                        <span class="eyebrow">SPERGER'S FIELD LOG · 001</span>
+                        <p class="chapter-kicker">@_config.Intro.Kicker</p>
+                        <h1>@_config.Intro.Headline<br /><em>@_config.Intro.HeadlineAccent</em></h1>
+                        <p class="lead">@_config.Intro.Lead</p>
+                        <blockquote>
+                            「@_config.Intro.Quote」
+                            <cite>— @_config.Intro.QuoteBy</cite>
+                        </blockquote>
+                        <a class="primary-action" href="#hunt" @onclick='() => SelectTab("hunt")'>@_config.Intro.StartButton <b aria-hidden="true">↘</b></a>
+                        <p class="micro-note">10 × 10 泥沼 · 3 章 · 每章 @_config.Layout.ChapterDurationSeconds 秒 · 支援滑鼠、觸控與鍵盤</p>
+                    </div>
+                    <div class="hero-art" role="img" aria-label="雨後蟲鳴谷的泥沼與巨木獵場">
+                        <span>FIELD SITE 07<br /><b>INSECT VALLEY</b></span>
+                    </div>
+                </section>
+                break;
 
-        <section class="field-guide" id="guide" aria-labelledby="guide-title">
-            <div class="section-heading">
-                <span>FIELD NOTES / TARGET INDEX</span>
-                <h2 id="guide-title">出手前，先辨認牠。</h2>
-                <p>六種輪廓、六種後果。機率與效果由版本控制內的 YAML 統一管理。</p>
-            </div>
-            <div class="guide-grid">
-                @foreach (TargetConfig target in _config.Targets)
-                {
-                    <article>
-                        <img src="@target.Image" alt="@target.Name" />
-                        <small>@target.Group · @target.Weight%</small>
-                        <h3>@target.Name</h3>
-                        <b>@target.ScoreLabel</b>
-                        <p>@target.Description</p>
-                    </article>
-                }
-            </div>
-        </section>
+            case "guide":
+                <section class="field-guide" id="guide" aria-labelledby="guide-title">
+                    <div class="section-heading">
+                        <span>FIELD NOTES / TARGET INDEX</span>
+                        <h2 id="guide-title">出手前，先辨認牠。</h2>
+                        <p>六種輪廓、六種後果。機率與效果由版本控制內的 YAML 統一管理。</p>
+                    </div>
+                    <div class="guide-grid">
+                        @foreach (TargetConfig target in _config.Targets)
+                        {
+                            <article>
+                                <img src="@target.Image" alt="@target.Name" loading="lazy" />
+                                <small>@target.Group · @target.Weight%</small>
+                                <h3>@target.Name</h3>
+                                <b>@target.ScoreLabel</b>
+                                <p>@target.Description</p>
+                            </article>
+                        }
+                    </div>
+                </section>
+                break;
 
-        <HuntingGame Config="_config" ScoreSaved="LoadScoresAsync" />
-        <CharacterProfile Config="_config.Lore" />
-        <TreasureGame Config="_config.Treasure" />
-        <ScoreHistory Records="_score_records" />
+            case "hunt":
+                <HuntingGame Config="_config" ScoreSaved="LoadScoresAsync" />
+                break;
+
+            case "character":
+                <CharacterProfile Config="_config.Lore" />
+                break;
+
+            case "treasure":
+                <TreasureGame Config="_config.Treasure" />
+                break;
+
+            case "records":
+                <ScoreHistory Records="_score_records" />
+                break;
+
+            default:
+                <p>找不到對應的頁面</p>
+                break;
+        }
 
         <footer class="game-footer">
             <strong>@_config.Site.FooterLabel</strong>
@@ -91,28 +115,26 @@ else if (_config is not null)
     private GameConfig? _config;
     private string _config_error = string.Empty;
     private List<ScoreRecord> _score_records = [];
-    private bool _scores_loaded;
+    // 預設顯示首頁；初始化時會再依網址錨點同步。
+    private string currentTab = "home";
 
     protected override async Task OnInitializedAsync()
     {
+        Navigation.LocationChanged += OnLocationChanged;
+        UpdateTabFromUri(Navigation.Uri);
+
         try
         {
             _config = await ConfigService.LoadAsync();
+            if (_config is not null)
+            {
+                await LoadScoresAsync();
+            }
         }
         catch (Exception exception)
         {
             _config_error = exception.Message;
         }
-    }
-
-    protected override async Task OnAfterRenderAsync(bool first_render)
-    {
-        if (!first_render || _config is null || _scores_loaded)
-        {
-            return;
-        }
-
-        await LoadScoresAsync();
     }
 
     private async Task LoadScoresAsync()
@@ -125,8 +147,53 @@ else if (_config is not null)
         {
             _score_records = [];
         }
+    }
 
-        _scores_loaded = true;
-        await InvokeAsync(StateHasChanged);
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        UpdateTabFromUri(e.Location);
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>
+    /// 立即切換畫面；網址錨點仍由連結本身負責更新。
+    /// </summary>
+    private void SelectTab(string tab)
+    {
+        currentTab = tab;
+    }
+
+    private string GetNavClass(string tab)
+    {
+        return currentTab == tab ? "active" : string.Empty;
+    }
+
+    private string? GetAriaCurrent(string tab)
+    {
+        return currentTab == tab ? "page" : null;
+    }
+
+    /// <summary>
+    /// 解析網址的錨點 (Hash)，並更新當前的標籤頁狀態。
+    /// </summary>
+    /// <param name="uri">當前的完整網址。</param>
+    private void UpdateTabFromUri(string uri)
+    {
+        string? fragment = new Uri(uri).Fragment;
+
+        currentTab = fragment switch
+        {
+            "#guide" => "guide",
+            "#hunt" => "hunt",
+            "#character" => "character",
+            "#treasure" => "treasure",
+            "#records" => "records",
+            _ => "home"
+        };
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
     }
 }

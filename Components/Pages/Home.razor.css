@@ -10,6 +10,8 @@
 .game-header nav { display: flex; gap: clamp(12px, 2vw, 28px); }
 .game-header nav a { font-size: .72rem; font-weight: 800; text-decoration: none; }
 .game-header nav a:hover { color: #52724a; }
+.game-header nav a.active,
+.game-header nav a[aria-current="page"] { color: #52724a; text-decoration: underline; text-decoration-color: #ef7b45; text-decoration-thickness: 2px; text-underline-offset: 6px; }
 
 .intro-stage { display: grid; gap: clamp(28px, 5vw, 70px); grid-template-columns: minmax(320px, .9fr) minmax(420px, 1.1fr); margin: 0 auto; max-width: 1500px; min-height: calc(100vh - 72px); padding: clamp(48px, 7vw, 96px) clamp(20px, 5vw, 76px); }
 .intro-copy { align-self: center; }
