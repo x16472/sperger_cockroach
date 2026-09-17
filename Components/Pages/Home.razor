@@ -23,7 +23,7 @@ else if (!string.IsNullOrWhiteSpace(_config_error))
 }
 else if (_config is not null)
 {
-    <main class="game-shell">
+    <main class="game-shell @(currentTab == "hunt" ? "hunt-active" : string.Empty)">
         <header class="game-header">
             <a class="brand" href="#top" @onclick='() => SelectTab("home")' aria-label="返回頁首">
                 <span class="brand-mark" aria-hidden="true">⌂</span>

@@ -35,6 +35,13 @@
   line-height: 1.8;
   max-width: 780px;
 }
+.hunt-section[data-phase="Playing"] {
+  min-height: 0;
+  padding-block: 12px;
+}
+.hunt-section[data-phase="Playing"] .hunt-heading {
+  display: none;
+}
 .ready-layout {
   display: grid;
   gap: 20px;
@@ -112,8 +119,11 @@
 .game-topline {
   align-items: center;
   display: flex;
-  gap: 28px;
-  margin-bottom: 14px;
+  gap: 20px;
+  line-height: 1.15;
+  margin-bottom: 8px;
+  min-height: 34px;
+  padding-inline: 8px;
 }
 .game-topline div small,
 .game-topline div strong {
@@ -128,7 +138,7 @@
   border: 1px solid #10231a;
   cursor: pointer;
   margin-left: auto;
-  padding: 10px 14px;
+  padding: 7px 12px;
 }
 .scoreboard {
   background: #10231a;
@@ -138,7 +148,7 @@
 }
 .scoreboard div {
   border-right: 1px solid rgba(244, 240, 228, 0.18);
-  padding: 17px 20px;
+  padding: 10px 16px;
 }
 .scoreboard div:last-child {
   border-right: 0;
@@ -155,14 +165,14 @@
   color: #cfec65;
   font-family: Georgia, serif;
   font-size: clamp(1rem, 2vw, 1.55rem);
-  margin-top: 5px;
+  margin-top: 3px;
 }
 .play-layout {
   align-items: stretch;
   display: grid;
   gap: 14px;
   grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
-  margin-top: 14px;
+  margin-top: 10px;
 }
 .hunting-board {
   aspect-ratio: 1;
@@ -180,6 +190,9 @@
   padding: clamp(3px, 0.8vw, 10px);
   position: relative;
   width: 100%;
+}
+.hunt-section[data-phase="Playing"] .hunting-board {
+  max-width: min(760px, calc(100dvh - 17rem));
 }
 .hunting-board::before {
   background: rgba(16, 35, 26, 0.18);
@@ -280,7 +293,8 @@
 }
 .live-status {
   border-bottom: 1px solid rgba(16, 35, 26, 0.2);
-  padding: 14px 2px;
+  margin-bottom: 0;
+  padding: 8px 2px;
 }
 
 .intermission-card {
@@ -439,6 +453,9 @@
     justify-self: center;
     max-width: 680px;
   }
+  .hunt-section[data-phase="Playing"] .hunting-board {
+    max-width: min(680px, 100%);
+  }
 }
 
 @media (min-width: 901px) and (max-height: 850px) {
@@ -472,6 +489,9 @@
     flex-wrap: wrap;
     gap: 12px 20px;
     padding: 0 6px;
+  }
+  .hunt-section[data-phase="Playing"] {
+    padding-top: 10px;
   }
   .scoreboard {
     grid-template-columns: repeat(2, 1fr);

@@ -2,17 +2,21 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Blazor WASM：啟動並偵錯",
-      "type": "chrome",
+      "name": "Blazor WebAssembly: 啟動站台並偵錯",
+      "type": "blazorwasm",
       "request": "launch",
-      "cwd": "${workspaceFolder}",
-      "url": "http://localhost:5044"
+      "url": "http://localhost:5044",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "啟動 Blazor WASM 開發伺服器",
+      "timeout": 60000
     },
     {
-      "name": "Blazor WASM：附加至現有站台",
-      "type": "chrome",
-      "request": "attach",
-      "url": "http://localhost:5044"
+      "name": "Blazor WebAssembly: 偵錯已啟動站台",
+      "type": "blazorwasm",
+      "request": "launch",
+      "url": "http://localhost:5044",
+      "webRoot": "${workspaceFolder}",
+      "timeout": 60000
     }
   ]
 }
