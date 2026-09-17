@@ -24,15 +24,15 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var record in Records.Take(10))
+                    @foreach (ScoreRecord record in Records.Take(count: 10))
                     {
                         <tr>
-                            <td>@record.EndedAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</td>
+                            <td>@record.EndedAt.ToLocalTime().ToString(format: "yyyy/MM/dd HH:mm")</td>
                             <td>@record.Difficulty</td>
                             <td>@record.Score</td>
                             <td>@record.Rank</td>
                             <td>@record.ChapterReached / 3</td>
-                            <td>@record.ActiveSeconds.ToString("F1") 秒</td>
+                            <td>@record.ActiveSeconds.ToString(format: "F1") 秒</td>
                         </tr>
                     }
                 </tbody>

@@ -32,11 +32,11 @@
         <div class="treasure-board"
              style="grid-template-columns: repeat(@Config.Columns, minmax(0, 1fr))"
              aria-label="九乘十九尋寶盤面">
-            @for (var cell_index = 0; cell_index < Config.Rows * Config.Columns; cell_index++)
+            @for (int cell_index = 0; cell_index < Config.Rows * Config.Columns; cell_index++)
             {
-                var current_cell = cell_index;
-                var is_revealed = _revealed_cells.Contains(current_cell);
-                var is_coin = is_revealed && _coin_cells.Contains(current_cell);
+                int current_cell = cell_index;
+                bool is_revealed = _revealed_cells.Contains(current_cell);
+                bool is_coin = is_revealed && _coin_cells.Contains(current_cell);
                 <button type="button"
                         class="@(is_coin ? "coin" : is_revealed ? "empty" : string.Empty)"
                         disabled="@(!_is_playing || is_revealed)"
@@ -51,9 +51,9 @@
 
 @code {
     [Parameter, EditorRequired]
-    public TreasureConfig Config { get; set; } = new();
+    public TreasureConfig Config { get; set; } = new TreasureConfig();
 
-    private readonly Random _random = new();
+    private readonly Random _random = new Random();
     private HashSet<int> _coin_cells = [];
     private readonly HashSet<int> _revealed_cells = [];
     private CancellationTokenSource? _timer_cancellation;

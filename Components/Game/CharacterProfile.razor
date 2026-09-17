@@ -7,7 +7,7 @@
 
     <div class="profile-layout">
         <div class="profile-tabs" role="tablist" aria-label="角色檔案分類">
-            @foreach (var section in Config.Sections)
+            @foreach (LoreSectionConfig section in Config.Sections)
             {
                 <button type="button"
                         role="tab"
@@ -24,7 +24,7 @@
             <article role="tabpanel" tabindex="0">
                 <small>FIELD FILE / @ActiveSection.Key.ToUpperInvariant()</small>
                 <h3>@ActiveSection.Title</h3>
-                @foreach (var paragraph in ActiveSection.Content.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+                @foreach (string paragraph in ActiveSection.Content.Split(separator: '\n', StringSplitOptions.RemoveEmptyEntries))
                 {
                     <p>@paragraph</p>
                 }
@@ -35,7 +35,7 @@
 
 @code {
     [Parameter, EditorRequired]
-    public LoreConfig Config { get; set; } = new();
+    public LoreConfig Config { get; set; } = new LoreConfig();
 
     private string _active_key = string.Empty;
 
@@ -46,7 +46,7 @@
     {
         if (string.IsNullOrWhiteSpace(_active_key) && Config.Sections.Count > 0)
         {
-            _active_key = Config.Sections[0].Key;
+            _active_key = Config.Sections[index: 0].Key;
         }
     }
 }

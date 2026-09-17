@@ -17,7 +17,7 @@
                 <label for="difficulty">選擇獵物出現速度</label>
                 <select id="difficulty" value="@_selected_level" @onchange="ChangeDifficulty">
                     <option value="">請選擇難度</option>
-                    @foreach (var difficulty in Config.Difficulties)
+                    @foreach (DifficultyConfig difficulty in Config.Difficulties)
                     {
                         <option value="@difficulty.Level">@difficulty.Name · @difficulty.SpawnIntervalMilliseconds ms</option>
                     }
@@ -28,9 +28,9 @@
             </div>
 
             <div class="chapter-list">
-                @for (var chapter_index = 0; chapter_index < Config.Chapters.Count; chapter_index++)
+                @for (int chapter_index = 0; chapter_index < Config.Chapters.Count; chapter_index++)
                 {
-                    var chapter = Config.Chapters[chapter_index];
+                    ChapterConfig? chapter = Config.Chapters[chapter_index];
                     <article>
                         <small>CHAPTER @(chapter_index + 1)</small>
                         <h3>@chapter.Title</h3>
@@ -59,10 +59,10 @@
             <div class="hunting-board"
                  style="grid-template-columns: repeat(@Config.Layout.BoardColumns, minmax(0, 1fr))"
                  aria-label="十乘十泥沼狩獵盤面">
-                @for (var cell_index = 0; cell_index < BoardCellCount; cell_index++)
+                @for (int cell_index = 0; cell_index < BoardCellCount; cell_index++)
                 {
-                    var current_cell = cell_index;
-                    var active_target = _active_target?.CellIndex == current_cell ? _active_target.Definition : null;
+                    int current_cell = cell_index;
+                    TargetConfig? active_target = _active_target?.CellIndex == current_cell ? _active_target.Definition : null;
                     <button type="button"
                             class="@(_feedback_cell == current_cell ? "hit-feedback" : active_target is not null ? "occupied" : string.Empty)"
                             aria-label="@(active_target?.AccessibleLabel ?? $"泥穴 {current_cell + 1}，目前沒有目標")"
@@ -89,7 +89,7 @@
                 }
 
                 <ol aria-label="最近狩獵紀錄">
-                    @foreach (var message in _log.Take(8))
+                    @foreach (string message in _log.Take(count: 8))
                     {
                         <li>@message</li>
                     }
@@ -131,10 +131,10 @@
                 <h3>本次遠征</h3>
                 <dl>
                     <div><dt>難度</dt><dd>@SelectedDifficulty?.Name</dd></div>
-                    <div><dt>日期</dt><dd>@_started_at.ToString("yyyy/MM/dd")</dd></div>
-                    <div><dt>開始時間</dt><dd>@_started_at.ToString("HH:mm:ss")</dd></div>
-                    <div><dt>結束時間</dt><dd>@_ended_at.ToString("HH:mm:ss")</dd></div>
-                    <div><dt>有效時間</dt><dd>@_active_elapsed_seconds.ToString("F1") 秒</dd></div>
+                    <div><dt>日期</dt><dd>@_started_at.ToString(format: "yyyy/MM/dd")</dd></div>
+                    <div><dt>開始時間</dt><dd>@_started_at.ToString(format: "HH:mm:ss")</dd></div>
+                    <div><dt>結束時間</dt><dd>@_ended_at.ToString(format: "HH:mm:ss")</dd></div>
+                    <div><dt>有效時間</dt><dd>@_active_elapsed_seconds.ToString(format: "F1") 秒</dd></div>
                     <div><dt>總分</dt><dd>@_session.Score / @Config.Gameplay.TargetScore</dd></div>
                 </dl>
                 <button type="button" class="primary" @onclick="BeginExpedition">再玩一局</button>
@@ -151,15 +151,15 @@
 
 @code {
     [Parameter, EditorRequired]
-    public GameConfig Config { get; set; } = new();
+    public GameConfig Config { get; set; } = new GameConfig();
 
     [Parameter]
     public EventCallback ScoreSaved { get; set; }
 
-    private readonly Random _random = new();
-    private readonly Stopwatch _chapter_watch = new();
+    private readonly Random _random = new Random();
+    private readonly Stopwatch _chapter_watch = new Stopwatch();
     private readonly List<string> _log = [];
-    private GameSessionState _session = new();
+    private GameSessionState _session = new GameSessionState();
     private GamePhase _phase = GamePhase.Ready;
     private ActiveTarget? _active_target;
     private TargetConfig? _last_preview;
@@ -181,7 +181,7 @@
     private bool _is_saved;
 
     private int BoardCellCount => Config.Layout.BoardRows * Config.Layout.BoardColumns;
-    private DifficultyConfig? SelectedDifficulty => Enum.TryParse<DifficultyLevel>(_selected_level, out var level)
+    private DifficultyConfig? SelectedDifficulty => Enum.TryParse<DifficultyLevel>(_selected_level, out DifficultyLevel level)
         ? Config.Difficulties.FirstOrDefault(difficulty => difficulty.Level == level)
         : null;
     private ChapterConfig CurrentChapter => Config.Chapters[_session.ChapterNumber - 1];
@@ -206,7 +206,7 @@
         _is_saved = false;
         _save_message = string.Empty;
         _log.Clear();
-        return StartChapter(1);
+        return StartChapter(chapter_number: 1);
     }
 
     private Task StartChapter(int chapter_number)
@@ -229,12 +229,12 @@
 
     private async Task RunGameLoop(CancellationToken cancellation_token)
     {
-        using var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(50));
+        using PeriodicTimer? timer = new PeriodicTimer(TimeSpan.FromMilliseconds(50));
         try
         {
             while (_phase == GamePhase.Playing && await timer.WaitForNextTickAsync(cancellation_token))
             {
-                var remaining = Config.Layout.ChapterDurationSeconds
+                double remaining = Config.Layout.ChapterDurationSeconds
                     - _chapter_watch.Elapsed.TotalSeconds
                     - _session.TimePenaltySeconds;
                 _seconds_left = Math.Max(0, (int)Math.Ceiling(remaining));
@@ -261,8 +261,8 @@
 
     private void SpawnTarget()
     {
-        var total_weight = Config.Targets.Sum(target => target.Weight);
-        var target = Rules.SelectTarget(Config.Targets, _random.Next(total_weight));
+        int total_weight = Config.Targets.Sum(target => target.Weight);
+        TargetConfig? target = Rules.SelectTarget(Config.Targets, _random.Next(total_weight));
         _active_target = new ActiveTarget(_random.Next(BoardCellCount), target);
         _next_spawn_at = DateTimeOffset.UtcNow.AddMilliseconds(SelectedDifficulty?.SpawnIntervalMilliseconds ?? 750);
     }
@@ -279,18 +279,18 @@
             _session.Misses++;
             _last_action = "撲空了。目標仍在原處。";
             AddLog(_last_action);
-            await JsRuntime.InvokeVoidAsync("spergerGame.playInteractionSound", "Miss");
+            await JsRuntime.InvokeVoidAsync(identifier: "spergerGame.playInteractionSound", "Miss");
             return;
         }
 
-        var hit_target = _active_target.Definition;
+        TargetConfig? hit_target = _active_target.Definition;
         _active_target = null;
         _last_preview = hit_target;
-        var effect = Rules.ApplyTarget(_session, hit_target, Config.Gameplay);
+        TargetEffectResult? effect = Rules.ApplyTarget(_session, hit_target, Config.Gameplay);
         _last_action = $"{hit_target.Reaction} {effect.Message}";
         _sperger_status = hit_target.Reaction;
         AddLog(_last_action);
-        await JsRuntime.InvokeVoidAsync("spergerGame.playInteractionSound", hit_target.Category.ToString());
+        await JsRuntime.InvokeVoidAsync(identifier: "spergerGame.playInteractionSound", hit_target.Category.ToString());
         ShowHitFeedback(cell_index);
 
         var remaining = Config.Layout.ChapterDurationSeconds
@@ -304,7 +304,7 @@
 
     private async void ShowHitFeedback(int cell_index)
     {
-        var generation = ++_feedback_generation;
+        int generation = ++_feedback_generation;
         _feedback_cell = cell_index;
         await Task.Delay(Config.Layout.HitFeedbackMilliseconds);
         if (generation != _feedback_generation)
@@ -362,7 +362,7 @@
             return;
         }
 
-        var record = new ScoreRecord
+        ScoreRecord? record = new ScoreRecord
         {
             Difficulty = SelectedDifficulty.Name,
             Score = _session.Score,
@@ -376,7 +376,7 @@
             ActiveSeconds = _active_elapsed_seconds
         };
 
-        await JsRuntime.InvokeVoidAsync("spergerGame.saveScore", record);
+        await JsRuntime.InvokeVoidAsync(identifier: "spergerGame.saveScore", record);
         _is_saved = true;
         _save_message = "成績已保存於此瀏覽器，不會上傳。";
         await ScoreSaved.InvokeAsync();
@@ -400,7 +400,7 @@
 
     private void AddLog(string message)
     {
-        _log.Insert(0, $"{DateTime.Now:HH:mm:ss}　{message}");
+        _log.Insert(index: 0, item: $"{DateTime.Now:HH:mm:ss}　{message}");
         if (_log.Count > 30)
         {
             _log.RemoveAt(_log.Count - 1);

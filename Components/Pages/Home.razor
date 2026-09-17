@@ -61,7 +61,7 @@ else if (_config is not null)
                 <p>六種輪廓、六種後果。機率與效果由版本控制內的 YAML 統一管理。</p>
             </div>
             <div class="guide-grid">
-                @foreach (var target in _config.Targets)
+                @foreach (TargetConfig target in _config.Targets)
                 {
                     <article>
                         <img src="@target.Image" alt="@target.Name" />
